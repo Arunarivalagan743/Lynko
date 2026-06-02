@@ -23,6 +23,12 @@ export const routesConfig = [
     isPublicOnly: false,
   },
   {
+    path: PATHS.PUBLIC_STATS_BASE,
+    element: <PublicStats />,
+    isProtected: false,
+    isPublicOnly: false,
+  },
+  {
     path: PATHS.PUBLIC_STATS,
     element: <PublicStats />,
     isProtected: false,
@@ -72,6 +78,11 @@ export const routesConfig = [
   {
     path: PATHS.BULK_UPLOAD,
     element: <BulkUpload />,
+    isProtected: true,
+  },
+  {
+    path: PATHS.ANALYTICS_BASE,
+    element: <Analytics />,
     isProtected: true,
   },
   {

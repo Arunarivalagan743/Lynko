@@ -8,19 +8,23 @@ const Input = forwardRef(
   ) => {
     return (
       <label className="flex w-full flex-col gap-2 text-sm">
-        <span className="text-sm font-medium text-text">{label}</span>
+        {label && (
+          <span className="font-space text-[13px] font-bold uppercase tracking-wider text-primary">
+            {label}
+          </span>
+        )}
         <input
           ref={ref}
           type={type}
           className={clsx(
-            'h-11 rounded-lg border border-border bg-white px-3 text-sm text-text transition-colors placeholder:text-text-muted/70 focus:border-primary/70 focus:outline-none focus:ring-2 focus:ring-primary/20',
-            error && 'border-error/70 focus:border-error/70 focus:ring-error/20',
+            'h-12 rounded-none border-2 border-primary bg-white px-4 font-sans text-sm text-on-surface placeholder:text-on-surface-variant/45 transition-colors focus:border-secondary focus:outline-none focus:ring-0',
+            error && 'border-error focus:border-error',
             inputClassName,
           )}
           {...props}
         />
-        {hint && !error && <span className="text-xs text-text-muted">{hint}</span>}
-        {error && <span className="text-xs text-error">{error}</span>}
+        {hint && !error && <span className="font-space text-[11px] text-text-muted">{hint}</span>}
+        {error && <span className="font-space text-[11px] text-error font-semibold">{error}</span>}
       </label>
     )
   },

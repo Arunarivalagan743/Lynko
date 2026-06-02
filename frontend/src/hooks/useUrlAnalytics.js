@@ -61,7 +61,7 @@ export const useUrlAnalytics = (urlId) => {
     try {
       const params = getQueryParams(customParams)
       const data = await getAnalyticsSummary(urlId, params)
-      setAnalytics(data?.analytics || data || null)
+      setAnalytics(data?.summary || data?.analytics || data || null)
     } catch (err) {
       console.error('Failed fetching analytics summary:', err)
     } finally {

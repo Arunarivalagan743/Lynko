@@ -24,19 +24,19 @@ const Navbar = () => {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/80 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b-2 border-primary bg-surface">
       <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-3">
           <Logo />
-          <span className="text-base font-semibold tracking-tight text-text">Lynko</span>
+          <span className="text-xl font-anton uppercase tracking-wider text-primary">Lynko</span>
         </Link>
 
-        <nav className="hidden items-center gap-8 text-sm text-text-muted md:flex">
+        <nav className="hidden items-center gap-8 text-xs font-space font-bold uppercase text-primary md:flex">
           {navItems.map((item) => (
             <a
               key={item.label}
               href={item.href}
-              className="transition-colors hover:text-text"
+              className="transition-colors hover:text-secondary"
             >
               {item.label}
             </a>
@@ -44,28 +44,28 @@ const Navbar = () => {
         </nav>
 
         {!isInitializing && (
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-4 md:flex">
             {isAuthenticated ? (
               <>
                 <NavLink
                   to="/dashboard"
-                  className="text-sm font-medium text-text-muted transition-colors hover:text-text"
+                  className="text-xs font-space font-bold uppercase text-primary transition-colors hover:text-secondary"
                 >
                   Dashboard
                 </NavLink>
                 <NavLink
-                  to="/links"
-                  className="text-sm font-medium text-text-muted transition-colors hover:text-text"
+                  to="/urls"
+                  className="text-xs font-space font-bold uppercase text-primary transition-colors hover:text-secondary"
                 >
                   Links
                 </NavLink>
                 <NavLink
                   to="/profile"
-                  className="text-sm font-medium text-text-muted transition-colors hover:text-text"
+                  className="text-xs font-space font-bold uppercase text-primary transition-colors hover:text-secondary"
                 >
                   Profile
                 </NavLink>
-                <Button variant="secondary" onClick={handleLogout}>
+                <Button variant="secondary" size="md" onClick={handleLogout}>
                   Logout
                 </Button>
               </>
@@ -73,11 +73,11 @@ const Navbar = () => {
               <>
                 <NavLink
                   to="/login"
-                  className="text-sm font-medium text-text-muted transition-colors hover:text-text"
+                  className="text-xs font-space font-bold uppercase text-primary transition-colors hover:text-secondary"
                 >
                   Login
                 </NavLink>
-                <Button as={Link} to="/signup">
+                <Button as={Link} to="/signup" size="md">
                   Start Free
                 </Button>
               </>
@@ -87,7 +87,7 @@ const Navbar = () => {
 
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-md border border-border/70 p-2 text-text md:hidden"
+          className="inline-flex items-center justify-center rounded-none border-2 border-primary bg-white p-2 text-primary md:hidden shadow-brutal-sm hover:bg-surface-container-low"
           onClick={() => setOpen((prev) => !prev)}
           aria-label="Toggle navigation"
         >
@@ -96,22 +96,22 @@ const Navbar = () => {
       </div>
 
       {open && !isInitializing && (
-        <div className="border-t border-border/70 bg-white md:hidden">
-          <div className="flex flex-col gap-3 px-6 py-4 text-sm text-text-muted">
+        <div className="border-t-2 border-primary bg-white md:hidden">
+          <div className="flex flex-col gap-3 px-6 py-4 text-xs font-space font-bold uppercase text-primary">
             {navItems.map((item) => (
-              <a key={item.label} href={item.href} className="hover:text-text">
+              <a key={item.label} href={item.href} className="hover:text-secondary">
                 {item.label}
               </a>
             ))}
             {isAuthenticated ? (
               <>
-                <NavLink to="/dashboard" className="hover:text-text">
+                <NavLink to="/dashboard" className="hover:text-secondary">
                   Dashboard
                 </NavLink>
-                <NavLink to="/links" className="hover:text-text">
+                <NavLink to="/urls" className="hover:text-secondary">
                   Links
                 </NavLink>
-                <NavLink to="/profile" className="hover:text-text">
+                <NavLink to="/profile" className="hover:text-secondary">
                   Profile
                 </NavLink>
                 <Button variant="secondary" onClick={handleLogout} className="w-full">
@@ -120,7 +120,7 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <NavLink to="/login" className="hover:text-text">
+                <NavLink to="/login" className="hover:text-secondary">
                   Login
                 </NavLink>
                 <Button as={Link} to="/signup" className="w-full">

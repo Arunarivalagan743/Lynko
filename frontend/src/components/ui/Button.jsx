@@ -21,13 +21,17 @@ const Button = forwardRef(
       <Comp
         ref={ref}
         className={clsx(
-          'inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60',
-          size === 'md' && 'h-11 px-5',
-          size === 'lg' && 'h-12 px-6',
-          variant === 'primary' && 'bg-primary text-white shadow-subtle hover:bg-primary/90',
+          'inline-flex items-center justify-center gap-2 rounded-none font-semibold transition-all duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/30 disabled:cursor-not-allowed disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0',
+          // Sizes
+          size === 'sm' && 'h-9 px-3.5 text-xs',
+          size === 'md' && 'h-12 px-5 text-sm',
+          size === 'lg' && 'h-[52px] px-6 text-sm',
+          size === 'xl' && 'h-14 px-8 text-base font-anton uppercase tracking-wider',
+          // Variants
+          variant === 'primary' && 'border-2 border-primary bg-primary text-white shadow-brutal hover:bg-primary-container active:translate-x-[4px] active:translate-y-[4px] active:shadow-none',
           variant === 'secondary' &&
-            'border border-border bg-white text-text hover:border-primary/40 hover:text-primary',
-          variant === 'ghost' && 'bg-transparent text-text hover:bg-surface',
+            'border-2 border-primary bg-white text-primary shadow-brutal hover:bg-surface-container-low active:translate-x-[4px] active:translate-y-[4px] active:shadow-none',
+          variant === 'ghost' && 'bg-transparent text-primary hover:bg-surface-container-low border border-transparent',
           className,
         )}
         disabled={Comp === 'button' ? isDisabled : undefined}

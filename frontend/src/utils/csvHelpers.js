@@ -1,4 +1,5 @@
 import Papa from 'papaparse'
+import { ENV } from '../constants/env.js'
 
 const URL_REGEX = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/
 const ALIAS_REGEX = /^[a-zA-Z0-9_-]{4,32}$/
@@ -109,13 +110,24 @@ export const validateCsvRows = (rows) => {
  * @returns {string} The formatted CSV content.
  */
 export const generateResultCsv = (results) => {
-  const mapped = results.map((row) => ({
-    originalUrl: row.originalUrl || '',
-    customAlias: row.customAlias || '',
-    status: row.status || 'failed',
-    shortUrl: row.url || '',
-    error: row.error?.message || '',
-  }))
+  const mapped = results.map((row) => {
+    let shortUrlStr = ''
+    if (row.url) {
+      if (typeof row.url === 'string') {
+        shortUrlStr = row.url
+      } else if (row.url.shortCode) {
+        shortUrlStr = `${ENV.VITE_API_URL}/r/${row.url.shortCode}`
+      }
+    }
+
+    return {
+      originalUrl: row.originalUrl || '',
+      customAlias: row.customAlias || '',
+      status: row.status || 'failed',
+      shortUrl: shortUrlStr,
+      error: row.error?.message || '',
+    }
+  })
 
   return Papa.unparse(mapped)
 }

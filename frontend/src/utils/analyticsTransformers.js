@@ -75,15 +75,16 @@ export const transformVisitData = (data) => {
 
   const visits = visitsList.map((visit) => ({
     id: visit._id || visit.id,
-    ip: visit.ip || 'Anonymous',
+    ip: visit.ipAddress || visit.ip || 'Anonymous',
     browser: visit.browser || 'Unknown',
     device: visit.device || 'Unknown',
     os: visit.os || 'Unknown',
+    country: visit.country || 'Unknown',
     isBot: Boolean(visit.isBot),
     clickQuality: visit.clickQuality || 'good',
     referrer: visit.referrer || 'Direct',
     campaign: visit.campaign || 'None',
-    clickedAt: visit.createdAt || visit.clickedAt,
+    clickedAt: visit.createdAt || visit.clickedAt || visit.timestamp,
   }))
 
   return {

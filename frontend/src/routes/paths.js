@@ -6,7 +6,10 @@ export const PATHS = {
   RESET_PASSWORD: '/reset-password',
   DASHBOARD: '/dashboard',
   URLS: '/urls',
+  ANALYTICS_BASE: '/analytics',
   ANALYTICS: '/analytics/:id',
   BULK_UPLOAD: '/bulk-upload',
   PUBLIC_STATS: '/stats/:shortCode',
+  PUBLIC_STATS_BASE: '/stats',
+  PROFILE: '/profile',
 }

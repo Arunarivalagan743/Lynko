@@ -1,9 +1,10 @@
 import React, { Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, Outlet } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/layout/Navbar.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import PublicRoute from './routes/PublicRoute.jsx'
+import DashboardLayout from './layouts/DashboardLayout.jsx'
 import { routesConfig } from './routes/routesConfig.jsx'
 import { PATHS } from './routes/paths.js'
 
@@ -25,26 +26,32 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-background text-text">
-      <Navbar />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* General/Public access routes */}
-          {generalRoutes.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
-
-          {/* Public-Only gates (redirects to dashboard if logged in) */}
-          <Route element={<PublicRoute />}>
-            {publicOnlyRoutes.map((route) => (
+          <Route element={<><Navbar /><Outlet /></>}>
+            {generalRoutes.map((route) => (
               <Route key={route.path} path={route.path} element={route.element} />
             ))}
           </Route>
 
+          {/* Public-Only gates (redirects to dashboard if logged in) */}
+          <Route element={<PublicRoute />}>
+            <Route element={<><Navbar /><Outlet /></>}>
+              {publicOnlyRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
+          </Route>
+
           {/* Protected gates (redirects to login if anonymous) */}
           <Route element={<ProtectedRoute />}>
-            {protectedRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
+            {/* Nest all workspace dashboards inside the DashboardLayout shell */}
+            <Route element={<DashboardLayout />}>
+              {protectedRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
           </Route>
 
           {/* Safe fallback for unmatched routes */}

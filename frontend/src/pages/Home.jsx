@@ -113,19 +113,20 @@ const Home = () => {
   const { isAuthenticated } = useAuth()
 
   return (
-    <div className="bg-white">
-      <section className="border-b border-border/70 bg-white">
+    <div className="bg-background min-h-screen">
+      {/* Hero Section */}
+      <section className="border-b-2 border-primary bg-white">
         <div className="mx-auto grid w-full max-w-[1200px] gap-12 px-6 py-16 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="flex flex-col justify-center gap-6">
-            <p className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-text-muted">
-              <span className="h-2 w-2 rounded-full bg-primary" />
+            <p className="inline-flex w-fit items-center gap-2 rounded-none border-2 border-primary bg-secondary-container px-3 py-1.5 text-xs font-bold font-space text-primary uppercase select-none">
+              <span className="h-2 w-2 rounded-none bg-primary" />
               Trusted link management for modern teams
             </p>
             <div className="space-y-4">
-              <h1 className="text-4xl font-semibold tracking-tight text-text md:text-5xl">
+              <h1 className="text-4xl font-anton uppercase tracking-wider text-primary leading-tight md:text-5xl">
                 Branded links that drive more clicks.
               </h1>
-              <p className="text-base text-text-muted md:text-lg">
+              <p className="text-base font-medium text-on-surface-variant md:text-lg">
                 Create, manage, and track short links with powerful analytics, custom domains,
                 QR codes, and enterprise-grade reliability.
               </p>
@@ -138,7 +139,7 @@ const Home = () => {
                 Book demo
               </Button>
             </div>
-            <div className="flex flex-wrap items-center gap-6 text-xs text-text-muted">
+            <div className="flex flex-wrap items-center gap-6 font-space text-xs font-bold uppercase text-primary pt-2">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={16} className="text-primary" />
                 SOC 2 aligned security
@@ -155,43 +156,46 @@ const Home = () => {
           </div>
 
           <div className="flex items-center justify-center">
-            <div className="w-full rounded-card border border-border/70 bg-surface p-6 shadow-medium">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-text">Campaign dashboard</p>
-                <span className="rounded-full border border-border bg-white px-3 py-1 text-xs text-text-muted">
+            <div className="w-full rounded-none border-2 border-primary bg-white p-6 shadow-brutal">
+              <div className="flex items-center justify-between border-b-2 border-primary pb-3 mb-6">
+                <p className="font-anton text-sm uppercase tracking-wider text-primary">Campaign dashboard</p>
+                <span className="rounded-none border-2 border-primary bg-secondary-container px-3 py-1 text-xs font-bold font-space text-primary uppercase">
                   Live
                 </span>
               </div>
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2">
                 {stats.slice(0, 2).map((stat) => (
-                  <div key={stat.label} className="rounded-lg border border-border/70 bg-white p-4">
-                    <p className="text-xs text-text-muted">{stat.label}</p>
-                    <p className="mt-2 text-xl font-semibold text-text">{stat.value}</p>
+                  <div key={stat.label} className="rounded-none border-2 border-primary bg-white p-4 shadow-brutal-sm">
+                    <p className="font-space text-[10px] font-bold uppercase text-on-surface-variant">{stat.label}</p>
+                    <p className="mt-2 text-2xl font-anton text-primary">{stat.value}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 rounded-lg border border-dashed border-border bg-white/70 p-4">
-                <div className="flex items-center justify-between text-xs text-text-muted">
+              <div className="mt-6 rounded-none border-2 border-dashed border-primary bg-surface-container-low p-4">
+                <div className="flex items-center justify-between font-space text-[10px] font-bold uppercase text-primary">
                   <span>Clicks by channel</span>
                   <span>Last 7 days</span>
                 </div>
-                <div className="mt-4 h-24 rounded-md bg-surface" />
+                <div className="mt-4 h-24 rounded-none border-2 border-primary bg-white flex items-center justify-center">
+                  <span className="font-space text-xs text-on-surface-variant/40 font-bold uppercase">Analytics visualizer</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-border/70 bg-white" id="solutions">
+      {/* Trust/Logo Cloud */}
+      <section className="border-b-2 border-primary bg-white" id="solutions">
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-6 py-12">
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+          <p className="text-center font-space text-xs font-bold uppercase tracking-[0.2em] text-primary">
             Trusted by modern teams worldwide
           </p>
-          <div className="grid grid-cols-2 gap-4 text-sm text-text-muted sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-4 text-xs font-space font-bold uppercase text-primary sm:grid-cols-3 lg:grid-cols-6">
             {['Nova', 'Skyline', 'Vector', 'Beacon', 'Vertex', 'Aurora'].map((name) => (
               <div
                 key={name}
-                className="flex items-center justify-center rounded-lg border border-border/70 bg-surface py-3"
+                className="flex items-center justify-center rounded-none border-2 border-primary bg-white py-3 shadow-brutal-sm"
               >
                 {name}
               </div>
@@ -200,58 +204,64 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="border-b border-border/70 bg-white" id="features">
+      {/* Product Showcase */}
+      <section className="border-b-2 border-primary bg-white" id="features">
         <div className="mx-auto grid w-full max-w-[1200px] gap-10 px-6 py-16 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+            <p className="font-space text-xs font-bold uppercase tracking-[0.2em] text-primary">
               Product showcase
             </p>
-            <h2 className="text-3xl font-semibold text-text">
+            <h2 className="text-3xl font-anton uppercase tracking-wider text-primary leading-tight">
               Everything your team needs to manage links at scale.
             </h2>
-            <p className="text-sm text-text-muted">
+            <p className="text-sm font-medium text-on-surface-variant leading-relaxed">
               Centralize links, track conversions, and share performance insights across every
               team. Lynko unifies branded links, QR codes, and routing into a single workspace.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
               {stats.map((stat) => (
-                <div key={stat.label} className="rounded-lg border border-border/70 bg-surface p-4">
-                  <p className="text-xs text-text-muted">{stat.label}</p>
-                  <p className="mt-2 text-lg font-semibold text-text">{stat.value}</p>
+                <div key={stat.label} className="rounded-none border-2 border-primary bg-surface-container-low p-4 shadow-brutal-sm">
+                  <p className="font-space text-[10px] font-bold uppercase text-on-surface-variant">{stat.label}</p>
+                  <p className="mt-2 text-xl font-anton text-primary">{stat.value}</p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="rounded-card border border-border/70 bg-surface p-6 shadow-subtle">
+          <div className="rounded-none border-2 border-primary bg-white p-6 shadow-brutal">
             <div className="space-y-4">
-              <div className="rounded-lg border border-border/70 bg-white p-4">
-                <p className="text-xs text-text-muted">Top performing link</p>
-                <p className="mt-2 text-sm font-semibold text-text">lynko.io/launch</p>
-                <p className="mt-1 text-xs text-text-muted">+24% week over week</p>
+              <div className="rounded-none border-2 border-primary bg-white p-4 shadow-brutal-sm">
+                <p className="font-space text-[10px] font-bold uppercase text-on-surface-variant">Top performing link</p>
+                <p className="mt-2 text-sm font-bold text-secondary">lynko.io/launch</p>
+                <p className="mt-1 font-space text-[9px] font-bold uppercase text-secondary">+24% week over week</p>
               </div>
-              <div className="rounded-lg border border-border/70 bg-white p-4">
-                <p className="text-xs text-text-muted">Audience split</p>
-                <div className="mt-4 h-24 rounded-md bg-surface" />
+              <div className="rounded-none border-2 border-primary bg-white p-4 shadow-brutal-sm">
+                <p className="font-space text-[10px] font-bold uppercase text-on-surface-variant">Audience split</p>
+                <div className="mt-4 h-24 rounded-none border-2 border-dashed border-primary bg-surface-container-low flex items-center justify-center">
+                  <span className="font-space text-[10px] text-on-surface-variant/40 font-bold uppercase">Chart visualizer</span>
+                </div>
               </div>
-              <div className="rounded-lg border border-border/70 bg-white p-4">
-                <p className="text-xs text-text-muted">Click trends</p>
-                <div className="mt-4 h-24 rounded-md bg-surface" />
+              <div className="rounded-none border-2 border-primary bg-white p-4 shadow-brutal-sm">
+                <p className="font-space text-[10px] font-bold uppercase text-on-surface-variant">Click trends</p>
+                <div className="mt-4 h-24 rounded-none border-2 border-dashed border-primary bg-surface-container-low flex items-center justify-center">
+                  <span className="font-space text-[10px] text-on-surface-variant/40 font-bold uppercase">Chart visualizer</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-border/70 bg-white" id="analytics">
+      {/* Analytics Section */}
+      <section className="border-b-2 border-primary bg-white" id="analytics">
         <div className="mx-auto grid w-full max-w-[1200px] gap-10 px-6 py-16 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="space-y-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+            <p className="font-space text-xs font-bold uppercase tracking-[0.2em] text-primary">
               Analytics
             </p>
-            <h2 className="text-3xl font-semibold text-text">
+            <h2 className="text-3xl font-anton uppercase tracking-wider text-primary leading-tight">
               See every click and conversion in real time.
             </h2>
-            <p className="text-sm text-text-muted">
+            <p className="text-sm font-medium text-on-surface-variant leading-relaxed">
               Measure performance across campaigns, channels, and teams with a single unified
               dashboard.
             </p>
@@ -262,25 +272,27 @@ const Home = () => {
                 { label: 'Avg. CTR', value: '4.8%' },
                 { label: 'Active regions', value: '42' },
               ].map((item) => (
-                <div key={item.label} className="rounded-lg border border-border/70 bg-surface p-4">
-                  <p className="text-xs text-text-muted">{item.label}</p>
-                  <p className="mt-2 text-lg font-semibold text-text">{item.value}</p>
+                <div key={item.label} className="rounded-none border-2 border-primary bg-white p-4 shadow-brutal-sm">
+                  <p className="font-space text-[10px] font-bold uppercase text-on-surface-variant">{item.label}</p>
+                  <p className="mt-2 text-xl font-anton text-primary">{item.value}</p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="rounded-card border border-border/70 bg-surface p-6 shadow-subtle">
+          <div className="rounded-none border-2 border-primary bg-white p-6 shadow-brutal">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-text">Conversion funnel</p>
-                <span className="text-xs text-text-muted">This quarter</span>
+              <div className="flex items-center justify-between border-b border-primary/20 pb-2">
+                <p className="font-space text-xs font-bold uppercase text-primary">Conversion funnel</p>
+                <span className="font-space text-[10px] font-bold text-on-surface-variant uppercase">This quarter</span>
               </div>
-              <div className="h-48 rounded-lg border border-dashed border-border bg-white" />
-              <div className="grid gap-3 text-sm text-text-muted">
+              <div className="h-48 rounded-none border-2 border-dashed border-primary bg-surface-container-low flex items-center justify-center">
+                <span className="font-space text-xs text-on-surface-variant/40 font-bold uppercase">Funnel visualizer</span>
+              </div>
+              <div className="grid gap-3 text-xs font-space font-bold uppercase text-primary">
                 {['Email campaigns', 'Paid social', 'Partner links'].map((item) => (
-                  <div key={item} className="flex items-center justify-between">
+                  <div key={item} className="flex items-center justify-between bg-surface-container-low p-2 border border-primary">
                     <span>{item}</span>
-                    <span className="text-text">{Math.floor(Math.random() * 30 + 20)}%</span>
+                    <span className="text-secondary">{Math.floor(Math.random() * 30 + 20)}%</span>
                   </div>
                 ))}
               </div>
@@ -289,7 +301,8 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="border-b border-border/70 bg-white">
+      {/* Info Grid */}
+      <section className="border-b-2 border-primary bg-white">
         <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
           <div className="grid gap-6 md:grid-cols-3">
             {[
@@ -309,63 +322,65 @@ const Home = () => {
                 description: 'Workflow-friendly APIs, webhooks, and export tooling.',
               },
             ].map((item) => (
-              <Card key={item.title} className="space-y-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-surface">
+              <Card key={item.title} className="space-y-3" shadowSize="sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-none border-2 border-primary bg-surface-container-low">
                   <item.icon size={18} className="text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-text">{item.title}</h3>
-                <p className="text-sm text-text-muted">{item.description}</p>
+                <h3 className="text-lg font-anton uppercase text-primary">{item.title}</h3>
+                <p className="text-sm font-medium text-on-surface-variant leading-relaxed">{item.description}</p>
               </Card>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-b border-border/70 bg-white">
+      {/* Features Grid */}
+      <section className="border-b-2 border-primary bg-white">
         <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
-          <div className="flex flex-col gap-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+          <div className="flex flex-col gap-4 text-center max-w-xl mx-auto mb-12">
+            <p className="font-space text-xs font-bold uppercase tracking-[0.2em] text-primary">
               Features
             </p>
-            <h2 className="text-3xl font-semibold text-text">
+            <h2 className="text-3xl font-anton uppercase text-primary">
               Built for performance, flexibility, and growth.
             </h2>
-            <p className="text-sm text-text-muted">
+            <p className="text-sm font-medium text-on-surface-variant">
               Everything you need to launch branded links faster and measure what matters.
             </p>
           </div>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((feature) => (
-              <Card key={feature.title} className="space-y-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-surface">
+              <Card key={feature.title} className="space-y-3" shadowSize="sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-none border-2 border-primary bg-surface-container-low">
                   <feature.icon size={18} className="text-primary" />
                 </div>
-                <h3 className="text-base font-semibold text-text">{feature.title}</h3>
-                <p className="text-sm text-text-muted">{feature.description}</p>
+                <h3 className="text-base font-anton uppercase text-primary">{feature.title}</h3>
+                <p className="text-sm font-medium text-on-surface-variant leading-relaxed">{feature.description}</p>
               </Card>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-b border-border/70 bg-white" id="developers">
+      {/* Developer Section */}
+      <section className="border-b-2 border-primary bg-white" id="developers">
         <div className="mx-auto grid w-full max-w-[1200px] gap-10 px-6 py-16 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-card border border-border/70 bg-surface p-6 shadow-subtle">
+          <div className="rounded-none border-2 border-primary bg-white p-6 shadow-brutal">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+              <p className="font-space text-xs font-bold uppercase tracking-[0.2em] text-primary">
                 Developer platform
               </p>
-              <h2 className="text-2xl font-semibold text-text">Build on Lynko APIs.</h2>
-              <p className="text-sm text-text-muted">
+              <h2 className="text-2xl font-anton uppercase text-primary">Build on Lynko APIs.</h2>
+              <p className="text-sm font-medium text-on-surface-variant leading-relaxed">
                 Create and manage links programmatically. Use secure tokens, webhooks, and
                 enterprise-ready docs.
               </p>
-              <div className="rounded-lg border border-border/70 bg-white p-4 text-xs text-text-muted">
-                <div className="flex items-center justify-between">
+              <div className="rounded-none border-2 border-primary bg-surface-container-low p-4 text-xs font-space text-primary">
+                <div className="flex items-center justify-between border-b border-primary/20 pb-2 mb-3">
                   <span>POST /v1/links</span>
-                  <span className="text-primary">201</span>
+                  <span className="text-secondary font-bold">201</span>
                 </div>
-                <pre className="mt-3 whitespace-pre-wrap font-mono text-[11px] text-text">
+                <pre className="whitespace-pre-wrap font-mono text-[11px] text-primary">
 {`{
   "url": "https://lynko.io",
   "alias": "launch",
@@ -375,9 +390,9 @@ const Home = () => {
               </div>
             </div>
           </div>
-          <div className="space-y-6">
-            <h2 className="text-3xl font-semibold text-text">Ship reliable link flows.</h2>
-            <p className="text-sm text-text-muted">
+          <div className="space-y-6 flex flex-col justify-center">
+            <h2 className="text-3xl font-anton uppercase text-primary">Ship reliable link flows.</h2>
+            <p className="text-sm font-medium text-on-surface-variant leading-relaxed">
               Lynko integrates with your marketing stack, product surfaces, and internal tooling.
               Launch faster with SDKs, webhooks, and analytics exports.
             </p>
@@ -386,9 +401,9 @@ const Home = () => {
                 (item) => (
                   <div
                     key={item}
-                    className="flex items-center gap-3 rounded-lg border border-border/70 bg-surface p-4 text-sm text-text"
+                    className="flex items-center gap-3 rounded-none border-2 border-primary bg-white p-4 text-xs font-bold font-space uppercase text-primary shadow-brutal-sm"
                   >
-                    <Check size={16} className="text-primary" />
+                    <Check size={16} className="text-secondary" />
                     {item}
                   </div>
                 ),
@@ -398,37 +413,44 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="border-b border-border/70 bg-white" id="pricing">
+      {/* Pricing Section */}
+      <section className="border-b-2 border-primary bg-white" id="pricing">
         <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
-          <div className="flex flex-col gap-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+          <div className="flex flex-col gap-4 text-center max-w-xl mx-auto mb-12">
+            <p className="font-space text-xs font-bold uppercase tracking-[0.2em] text-primary">
               Pricing
             </p>
-            <h2 className="text-3xl font-semibold text-text">Plans that scale with you.</h2>
-            <p className="text-sm text-text-muted">
+            <h2 className="text-3xl font-anton uppercase text-primary">Plans that scale with you.</h2>
+            <p className="text-sm font-medium text-on-surface-variant">
               Transparent pricing for startups, agencies, and enterprise teams.
             </p>
           </div>
-          <div className="mt-10 grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3">
             {plans.map((plan) => (
               <Card
                 key={plan.name}
-                className={`space-y-5 ${plan.highlight ? 'border-primary/50 shadow-medium' : ''}`}
+                className={`space-y-5 flex flex-col justify-between ${
+                  plan.highlight 
+                    ? 'border-4 border-primary bg-secondary-container shadow-brutal-lg' 
+                    : 'border-2 border-primary bg-white shadow-brutal'
+                }`}
               >
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-text">{plan.name}</p>
-                  <p className="text-3xl font-semibold text-text">{plan.price}</p>
-                  <p className="text-sm text-text-muted">{plan.description}</p>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="font-space text-xs font-bold uppercase text-primary">{plan.name}</p>
+                    <p className="text-4xl font-anton text-primary">{plan.price}</p>
+                    <p className="text-xs font-medium text-on-surface-variant leading-relaxed">{plan.description}</p>
+                  </div>
+                  <ul className="space-y-2 text-xs font-space font-bold uppercase text-primary border-t border-primary/20 pt-4">
+                    {plan.features.map((item) => (
+                      <li key={item} className="flex items-center gap-2">
+                        <Check size={14} className="text-secondary shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="space-y-2 text-sm text-text-muted">
-                  {plan.features.map((item) => (
-                    <li key={item} className="flex items-center gap-2">
-                      <Check size={16} className="text-primary" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <Button variant={plan.highlight ? 'primary' : 'secondary'} className="w-full">
+                <Button variant={plan.highlight ? 'primary' : 'secondary'} className="w-full mt-4">
                   {plan.highlight ? 'Start Growth' : 'Choose plan'}
                 </Button>
               </Card>
@@ -437,38 +459,40 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="border-b border-border/70 bg-white" id="faq">
+      {/* FAQ Section */}
+      <section className="border-b-2 border-primary bg-white" id="faq">
         <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
-          <div className="flex flex-col gap-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+          <div className="flex flex-col gap-4 text-center max-w-xl mx-auto mb-12">
+            <p className="font-space text-xs font-bold uppercase tracking-[0.2em] text-primary">
               FAQ
             </p>
-            <h2 className="text-3xl font-semibold text-text">Answers for teams evaluating Lynko.</h2>
+            <h2 className="text-3xl font-anton uppercase text-primary">Answers for teams evaluating Lynko.</h2>
           </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {faqs.map((faq) => (
               <details
                 key={faq.question}
-                className="group rounded-card border border-border/70 bg-white p-5"
+                className="group rounded-none border-2 border-primary bg-white p-5 shadow-brutal-sm cursor-pointer select-none"
               >
-                <summary className="flex cursor-pointer items-center justify-between text-sm font-semibold text-text">
+                <summary className="flex items-center justify-between text-sm font-anton uppercase tracking-wider text-primary">
                   {faq.question}
-                  <ArrowRight size={16} className="transition-transform group-open:rotate-90" />
+                  <ArrowRight size={16} className="transition-transform group-open:rotate-90 text-primary" />
                 </summary>
-                <p className="mt-3 text-sm text-text-muted">{faq.answer}</p>
+                <p className="mt-3 text-xs font-space font-semibold text-on-surface-variant leading-relaxed">{faq.answer}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Bottom Call to Action */}
       <section className="bg-white">
         <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
-          <div className="rounded-card border border-border/70 bg-surface p-10 text-center">
-            <h2 className="text-3xl font-semibold text-text">
+          <div className="rounded-none border-2 border-primary bg-surface-container-low p-10 text-center shadow-brutal">
+            <h2 className="text-3xl font-anton uppercase text-primary">
               Ready to launch links that perform?
             </h2>
-            <p className="mt-3 text-sm text-text-muted">
+            <p className="mt-3 text-sm font-medium text-on-surface-variant">
               Join teams already using Lynko to manage campaigns and track performance.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -483,16 +507,17 @@ const Home = () => {
         </div>
       </section>
 
-      <footer className="border-t border-border/70 bg-white">
+      {/* Footer */}
+      <footer className="border-t-2 border-primary bg-white">
         <div className="mx-auto grid w-full max-w-[1200px] gap-8 px-6 py-10 md:grid-cols-4">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white">
-                <div className="h-3.5 w-3.5 rounded-sm bg-primary" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-none border-2 border-primary bg-white">
+                <div className="h-3.5 w-3.5 rounded-none bg-primary" />
               </div>
-              <p className="text-base font-semibold text-text">Lynko</p>
+              <p className="text-lg font-anton uppercase tracking-wider text-primary">Lynko</p>
             </div>
-            <p className="text-sm text-text-muted">
+            <p className="text-xs font-medium text-on-surface-variant leading-relaxed">
               The premium link management platform for modern teams.
             </p>
           </div>
@@ -510,10 +535,10 @@ const Home = () => {
               links: ['Docs', 'API', 'Guides', 'Support'],
             },
           ].map((group) => (
-            <div key={group.title} className="space-y-2 text-sm text-text-muted">
-              <p className="text-sm font-semibold text-text">{group.title}</p>
+            <div key={group.title} className="space-y-2 text-xs font-space font-bold uppercase text-primary">
+              <p className="text-sm font-space font-bold uppercase text-primary border-b border-primary/20 pb-1">{group.title}</p>
               {group.links.map((item) => (
-                <p key={item} className="hover:text-text">
+                <p key={item} className="hover:text-secondary cursor-pointer transition-colors">
                   {item}
                 </p>
               ))}
