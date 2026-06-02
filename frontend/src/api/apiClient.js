@@ -1,5 +1,7 @@
 import axios from 'axios'
 import { ENV } from '../constants/env.js'
+import { mapApiError } from '../utils/errorMapper.js'
+import { toast } from 'react-hot-toast'
 
 // Create Axios Client Instance
 const apiClient = axios.create({
@@ -106,6 +108,15 @@ apiClient.interceptors.response.use(
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
+      }
+    }
+
+    // Globally intercept and notify for other response failures (excluding 401s and standard 400 validations)
+    if (error.response?.status !== 401) {
+      const mapped = mapApiError(error)
+      // Only toast 400 validation failures if they are critical safety blocks
+      if (error.response?.status !== 400 || mapped.severity === 'critical') {
+        toast.error(mapped.message, { id: 'global-api-error-toast' })
       }
     }
 
