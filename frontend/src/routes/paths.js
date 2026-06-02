@@ -5,8 +5,8 @@ export const PATHS = {
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
   DASHBOARD: '/dashboard',
-  LINKS: '/links',
-  PROFILE: '/profile',
+  URLS: '/urls',
+  ANALYTICS: '/analytics/:id',
   BULK_UPLOAD: '/bulk-upload',
   PUBLIC_STATS: '/stats/:shortCode',
 }

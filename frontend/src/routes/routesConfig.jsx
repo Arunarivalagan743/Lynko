@@ -8,12 +8,11 @@ const Signup = lazy(() => import('../pages/auth/Signup.jsx'))
 const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword.jsx'))
 const ResetPassword = lazy(() => import('../pages/auth/ResetPassword.jsx'))
 const Dashboard = lazy(() => import('../pages/Dashboard.jsx'))
-const Links = lazy(() => import('../pages/Links.jsx'))
+const Urls = lazy(() => import('../pages/Urls.jsx'))
 const Profile = lazy(() => import('../pages/Profile.jsx'))
-
-// Note: PublicStats and BulkUpload are part of the roadmap
 const BulkUpload = lazy(() => import('../pages/BulkUpload.jsx'))
 const PublicStats = lazy(() => import('../pages/PublicStats.jsx'))
+const Analytics = lazy(() => import('../pages/Analytics.jsx'))
 
 export const routesConfig = [
   // Public Routes
@@ -61,8 +60,8 @@ export const routesConfig = [
     isProtected: true,
   },
   {
-    path: PATHS.LINKS,
-    element: <Links />,
+    path: PATHS.URLS,
+    element: <Urls />,
     isProtected: true,
   },
   {
@@ -73,6 +72,11 @@ export const routesConfig = [
   {
     path: PATHS.BULK_UPLOAD,
     element: <BulkUpload />,
+    isProtected: true,
+  },
+  {
+    path: PATHS.ANALYTICS,
+    element: <Analytics />,
     isProtected: true,
   },
 ]
