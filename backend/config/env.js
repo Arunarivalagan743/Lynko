@@ -30,6 +30,8 @@ const env = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
   },
   resetTokenExpiresIn: process.env.RESET_TOKEN_EXPIRES_IN,
+  safeBrowsingApiKey: process.env.SAFE_BROWSING_API_KEY,
+  virusTotalApiKey: process.env.VIRUSTOTAL_API_KEY,
 };
 
 module.exports = { env };

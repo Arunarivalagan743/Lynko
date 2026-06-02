@@ -16,4 +16,12 @@ const passwordResetLimiter = rateLimit({
   message: "Too many reset attempts, please try again later.",
 });
 
-module.exports = { authLimiter, passwordResetLimiter };
+const redirectLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many requests, please try again later.",
+});
+
+module.exports = { authLimiter, passwordResetLimiter, redirectLimiter };
