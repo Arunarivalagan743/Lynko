@@ -4,11 +4,13 @@ const {
   listUrls,
   getUrl,
   deleteUrl,
+  updateUrl,
 } = require("../controllers/urlController");
 const { authenticate } = require("../middleware/authMiddleware");
 const { validate } = require("../middleware/validate");
 const {
   createUrlSchema,
+  updateUrlSchema,
   urlIdParamSchema,
 } = require("../validators/urlValidators");
 
@@ -22,6 +24,14 @@ router.delete(
   authenticate,
   validate(urlIdParamSchema, "params"),
   deleteUrl
+);
+
+router.patch(
+  "/:id",
+  authenticate,
+  validate(urlIdParamSchema, "params"),
+  validate(updateUrlSchema),
+  updateUrl
 );
 
 module.exports = { urlRoutes: router };

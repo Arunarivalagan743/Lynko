@@ -3,6 +3,7 @@ const {
   getUserUrls,
   getUrlById,
   deleteUrlById,
+  updateUrlById,
 } = require("../services/urlService");
 
 const createUrl = async (req, res, next) => {
@@ -10,14 +11,15 @@ const createUrl = async (req, res, next) => {
     const { originalUrl, customAlias, expiresAt } = req.body;
     const ownerId = req.user?.id;
 
-    const url = await createShortUrl({
+    const { url, qrCodeDataUrl } = await createShortUrl({
       ownerId,
       originalUrl,
       customAlias,
       expiresAt,
+      baseUrl: `${req.protocol}://${req.get("host")}`,
     });
 
-    return res.status(201).json({ url });
+    return res.status(201).json({ url, qrCodeDataUrl });
   } catch (err) {
     return next(err);
   }
@@ -63,9 +65,27 @@ const deleteUrl = async (req, res, next) => {
   }
 };
 
+const updateUrl = async (req, res, next) => {
+  try {
+    const ownerId = req.user?.id;
+    const { id } = req.params;
+    const { originalUrl, expiresAt } = req.body;
+
+    const url = await updateUrlById(ownerId, id, {
+      ...(originalUrl ? { originalUrl } : {}),
+      ...(expiresAt ? { expiresAt } : {}),
+    });
+
+    return res.status(200).json({ url });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 module.exports = {
   createUrl,
   listUrls,
   getUrl,
   deleteUrl,
+  updateUrl,
 };
