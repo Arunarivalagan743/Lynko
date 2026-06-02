@@ -1,111 +1,180 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { login as loginRequest, logout as logoutRequest, signup as signupRequest } from '../services/authApi.js'
+import { 
+  login as loginRequest, 
+  signup as signupRequest, 
+  logout as logoutRequest, 
+  refreshToken as refreshRequest 
+} from '../services/authApi.js'
+import { getProfile as getProfileRequest } from '../services/userApi.js'
 import { setAuthToken } from '../services/http.js'
 
 const AuthContext = createContext(null)
 
-const STORAGE_KEY = 'lynko_auth'
+const STORAGE_KEY = 'lynko_refresh_token_hint'
 
-const readStoredAuth = () => {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
+const readStoredRefreshHint = () => {
+  if (typeof window === 'undefined') return null
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-
-    return JSON.parse(raw)
+    return window.localStorage.getItem(STORAGE_KEY)
   } catch (_err) {
     return null
   }
 }
 
-const writeStoredAuth = (payload) => {
-  if (typeof window === 'undefined') {
-    return
+const writeStoredRefreshHint = (token) => {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(STORAGE_KEY, token)
+  } catch (_err) {
+    // Ignore storage issues
   }
-
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
 }
 
-const clearStoredAuth = () => {
-  if (typeof window === 'undefined') {
-    return
+const clearStoredRefreshHint = () => {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(STORAGE_KEY)
+  } catch (_err) {
+    // Ignore storage issues
   }
-
-  window.localStorage.removeItem(STORAGE_KEY)
 }
 
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
     user: null,
     accessToken: null,
-    refreshToken: null,
     isInitializing: true,
   })
 
-  useEffect(() => {
-    const stored = readStoredAuth()
-    if (stored?.accessToken) {
-      setAuthToken(stored.accessToken)
-      setAuthState({
-        user: stored.user || null,
-        accessToken: stored.accessToken,
-        refreshToken: stored.refreshToken || null,
-        isInitializing: false,
-      })
-      return
-    }
-
-    setAuthToken(null)
-    setAuthState((prev) => ({
-      ...prev,
-      isInitializing: false,
-    }))
-  }, [])
-
-  const login = useCallback(async (payload) => {
-    const response = await loginRequest(payload)
-    const nextState = {
-      user: response.user || null,
-      accessToken: response.accessToken || null,
-      refreshToken: response.refreshToken || null,
-      isInitializing: false,
-    }
-
-    writeStoredAuth(nextState)
-    setAuthToken(nextState.accessToken)
-    setAuthState(nextState)
-
-    return response
-  }, [])
-
-  const signup = useCallback(async (payload) => {
-    const response = await signupRequest(payload)
-    return response
-  }, [])
-
-  const logout = useCallback(async () => {
+  // Resolves the current user's profile metadata from the backend
+  const getCurrentUser = useCallback(async () => {
     try {
-      if (authState.refreshToken) {
-        await logoutRequest({ refreshToken: authState.refreshToken })
-      }
-    } catch (_err) {
-      // Ignore network errors on logout and clear client state anyway.
-    } finally {
-      clearStoredAuth()
+      const response = await getProfileRequest()
+      const user = response.user || response
+      setAuthState((prev) => ({
+        ...prev,
+        user,
+      }))
+      return user
+    } catch (err) {
+      // Clear session if user loading fails (indicates invalid token session)
       setAuthToken(null)
+      clearStoredRefreshHint()
       setAuthState({
         user: null,
         accessToken: null,
-        refreshToken: null,
+        isInitializing: false,
+      })
+      throw err
+    }
+  }, [])
+
+  // Refreshes the session using the stored refresh token
+  const refreshSession = useCallback(async () => {
+    const storedToken = readStoredRefreshHint()
+    if (!storedToken) {
+      setAuthState((prev) => ({ ...prev, isInitializing: false }))
+      return null
+    }
+
+    try {
+      const response = await refreshRequest({ refreshToken: storedToken })
+      const { accessToken, refreshToken: newRefreshToken } = response
+
+      // Store new access token in memory & update HTTP client defaults
+      setAuthToken(accessToken)
+      writeStoredRefreshHint(newRefreshToken)
+
+      setAuthState((prev) => ({
+        ...prev,
+        accessToken,
+      }))
+
+      // Fetch user profile info following token updates
+      const user = await getProfileRequest()
+      const parsedUser = user.user || user
+
+      setAuthState((prev) => ({
+        ...prev,
+        user: parsedUser,
+        isInitializing: false,
+      }))
+
+      return { accessToken, user: parsedUser }
+    } catch (err) {
+      setAuthToken(null)
+      clearStoredRefreshHint()
+      setAuthState({
+        user: null,
+        accessToken: null,
+        isInitializing: false,
+      })
+      throw err
+    }
+  }, [])
+
+  // User Login Action
+  const login = useCallback(async (payload) => {
+    const response = await loginRequest(payload)
+    const { user, accessToken, refreshToken } = response
+
+    setAuthToken(accessToken)
+    writeStoredRefreshHint(refreshToken)
+
+    setAuthState({
+      user: user || null,
+      accessToken,
+      isInitializing: false,
+    })
+
+    return response
+  }, [])
+
+  // User Signup Action (auto-logs in user upon registration success)
+  const signup = useCallback(async (payload) => {
+    const response = await signupRequest(payload)
+    const { user, accessToken, refreshToken } = response
+
+    if (accessToken && refreshToken) {
+      setAuthToken(accessToken)
+      writeStoredRefreshHint(refreshToken)
+
+      setAuthState({
+        user: user || null,
+        accessToken,
         isInitializing: false,
       })
     }
-  }, [authState.refreshToken])
+
+    return response
+  }, [])
+
+  // User Logout Action
+  const logout = useCallback(async () => {
+    const storedToken = readStoredRefreshHint()
+    try {
+      if (storedToken) {
+        await logoutRequest({ refreshToken: storedToken })
+      }
+    } catch (_err) {
+      // Clear client state even if backend API revocation call fails
+    } finally {
+      setAuthToken(null)
+      clearStoredRefreshHint()
+      setAuthState({
+        user: null,
+        accessToken: null,
+        isInitializing: false,
+      })
+    }
+  }, [])
+
+  // Startup Session Restoration Logic
+  useEffect(() => {
+    refreshSession().catch((_err) => {
+      // Silent catch on startup failure; user is redirected to public view cleanly
+    })
+  }, [refreshSession])
 
   const value = useMemo(
     () => ({
@@ -114,8 +183,10 @@ export const AuthProvider = ({ children }) => {
       login,
       signup,
       logout,
+      refreshSession,
+      getCurrentUser,
     }),
-    [authState, login, logout, signup],
+    [authState, login, signup, logout, refreshSession, getCurrentUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -124,8 +195,8 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext)
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
+    throw new Error('useAuth must be used within an AuthProvider')
   }
-
   return context
 }
+export default AuthContext
