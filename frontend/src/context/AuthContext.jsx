@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { 
   login as loginRequest, 
   signup as signupRequest, 
@@ -7,6 +7,7 @@ import {
 } from '../services/authApi.js'
 import { getProfile as getProfileRequest } from '../services/userApi.js'
 import { setAuthToken } from '../services/http.js'
+import { injectAuthActions } from '../api/apiClient.js'
 
 const AuthContext = createContext(null)
 
@@ -45,6 +46,13 @@ export const AuthProvider = ({ children }) => {
     accessToken: null,
     isInitializing: true,
   })
+
+  // Synchronize token value to a ref for synchronous client access without stale render lags
+  const tokenRef = useRef(null)
+
+  useEffect(() => {
+    tokenRef.current = authState.accessToken
+  }, [authState.accessToken])
 
   // Resolves the current user's profile metadata from the backend
   const getCurrentUser = useCallback(async () => {
@@ -168,6 +176,15 @@ export const AuthProvider = ({ children }) => {
       })
     }
   }, [])
+
+  // Inject authentication actions into the HTTP client interceptor tier
+  useEffect(() => {
+    injectAuthActions(
+      () => tokenRef.current,
+      refreshSession,
+      logout
+    )
+  }, [refreshSession, logout])
 
   // Startup Session Restoration Logic
   useEffect(() => {

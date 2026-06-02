@@ -1,19 +1,17 @@
-import axios from 'axios'
+import apiClient from '../api/apiClient.js'
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-
+/**
+ * Sets or deletes the default Authorization header on the unified apiClient instance.
+ *
+ * @param {string|null} token - The access token string or null to clear the header.
+ */
 export const setAuthToken = (token) => {
   if (token) {
-    api.defaults.headers.common.Authorization = `Bearer ${token}`
+    apiClient.defaults.headers.common.Authorization = `Bearer ${token}`
     return
   }
 
-  delete api.defaults.headers.common.Authorization
+  delete apiClient.defaults.headers.common.Authorization
 }
 
-export default api
+export default apiClient
