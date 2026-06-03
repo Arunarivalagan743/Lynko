@@ -60,7 +60,7 @@ export const useBulkUpload = () => {
       setValidationErrors(errors)
 
       if (errors.length > 0) {
-        toast.warning(`Parsed ${rows.length} rows, found ${errors.length} validation errors`)
+        toast(`Parsed ${rows.length} rows, found ${errors.length} validation errors`, { icon: '⚠️' })
       } else {
         toast.success(`Successfully parsed ${rows.length} rows for upload`)
       }
@@ -75,10 +75,6 @@ export const useBulkUpload = () => {
   const submitBulkUpload = useCallback(async () => {
     if (parsedRows.length === 0) {
       toast.error('No valid rows available to upload')
-      return
-    }
-    if (validationErrors.length > 0) {
-      toast.error('Please fix validation errors before uploading')
       return
     }
 

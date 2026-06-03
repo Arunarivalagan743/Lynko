@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useUrlAnalytics } from '../hooks/useUrlAnalytics.js'
 import { useUrls } from '../hooks/useUrls.js'
@@ -14,9 +14,6 @@ import {
   Globe, 
   RefreshCw, 
   AlertCircle, 
-  ShieldAlert, 
-  Users,
-  Search,
   ExternalLink
 } from 'lucide-react'
 import {
@@ -72,6 +69,22 @@ export default function AnalyticsPage() {
   useEffect(() => {
     fetchUrls()
   }, [fetchUrls])
+
+  const latestUrl = useMemo(() => {
+    if (!urls.length) return null
+    const sorted = [...urls].sort((a, b) => {
+      const aDate = a?.createdAt ? new Date(a.createdAt).getTime() : 0
+      const bDate = b?.createdAt ? new Date(b.createdAt).getTime() : 0
+      return bDate - aDate
+    })
+    return sorted[0]
+  }, [urls])
+
+  useEffect(() => {
+    if (!id && !urlsLoading && latestUrl?._id) {
+      navigate(`/analytics/${latestUrl._id}`, { replace: true })
+    }
+  }, [id, urlsLoading, latestUrl, navigate])
 
   // Fetch analytics data when URL ID changes or date filters are applied
   useEffect(() => {
@@ -233,9 +246,9 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* 1. Analytics Summary Metrics Grid */}
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-5 sm:grid-cols-2">
             {summaryLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
+              Array.from({ length: 2 }).map((_, i) => (
                 <SkeletonCard key={i} variant="analytics" />
               ))
             ) : (
@@ -249,42 +262,6 @@ export default function AnalyticsPage() {
                   <div className="space-y-1">
                     <h3 className="text-4xl font-anton text-primary">{analytics?.totalClicks ?? 0}</h3>
                     <p className="label-meta">Accumulated redirections</p>
-                  </div>
-                </Card>
-
-                {/* Human Clicks Card */}
-                <Card className="flex flex-col justify-between !p-6 space-y-3 !bg-secondary-container" shadowSize="sm" hover>
-                  <div className="flex items-center justify-between text-primary">
-                    <span className="font-space text-xs font-bold uppercase tracking-wider">Human Clicks</span>
-                    <Users size={18} />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-4xl font-anton text-primary">{analytics?.humanClicks ?? 0}</h3>
-                    <p className="font-space text-[10px] font-bold uppercase text-on-secondary-container">Verified user activities</p>
-                  </div>
-                </Card>
-
-                {/* Bot Clicks Card */}
-                <Card className="flex flex-col justify-between !p-6 space-y-3 !bg-tertiary-container" shadowSize="sm" hover>
-                  <div className="flex items-center justify-between">
-                    <span className="font-space text-xs font-bold uppercase tracking-wider text-tertiary">Bot Clicks</span>
-                    <Monitor size={18} className="text-tertiary" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-4xl font-anton text-tertiary">{analytics?.botClicks ?? 0}</h3>
-                    <p className="font-space text-[10px] font-bold uppercase text-on-tertiary-container">Automated crawlers & spikes</p>
-                  </div>
-                </Card>
-
-                {/* Suspicious Clicks Card */}
-                <Card className="flex flex-col justify-between !p-6 space-y-3 !bg-error-container" shadowSize="sm" hover>
-                  <div className="flex items-center justify-between text-error">
-                    <span className="font-space text-xs font-bold uppercase tracking-wider text-error">Suspicious Clicks</span>
-                    <ShieldAlert size={18} />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-4xl font-anton text-error">{analytics?.suspiciousClicks ?? 0}</h3>
-                    <p className="font-space text-[10px] font-bold uppercase text-on-error-container">Blocked/flagged anomalies</p>
                   </div>
                 </Card>
 
@@ -310,16 +287,6 @@ export default function AnalyticsPage() {
               </>
             )}
           </div>
-
-          {/* JSON Summary Debug Card */}
-          <details className="group border border-primary/30 rounded-none bg-surface-container-low p-3">
-            <summary className="font-space text-xs font-bold uppercase tracking-wider text-on-surface-variant cursor-pointer hover:text-primary select-none">
-              View Raw Summary JSON Payload
-            </summary>
-            <pre className="text-xs text-primary bg-white border border-primary/30 rounded-none p-4 mt-3 overflow-x-auto select-all">
-              {JSON.stringify(analytics, null, 2)}
-            </pre>
-          </details>
 
           {/* Browser, Device, and Daily Trends Splits */}
           <div className="grid gap-8 md:grid-cols-3">
@@ -356,11 +323,14 @@ export default function AnalyticsPage() {
                         </PieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="label-meta text-center py-16 select-none">No browser clicks recorded</div>
+                      <div className="flex flex-col items-center justify-center w-full h-full py-16 text-center space-y-2 border-2 border-dashed border-primary/20 bg-surface-container-low/20">
+                        <Monitor size={32} className="text-primary/30" />
+                        <p className="label-meta select-none">No browser clicks recorded</p>
+                      </div>
                     )}
                   </div>
 
-                  {browsers.length > 0 && (
+                  {browsers.length > 0 && browsers.some(b => b.value > 0) && (
                     <table className="w-full text-sm text-left border-collapse">
                       <thead>
                         <tr className="border-b-2 border-primary font-space text-[11px] font-bold uppercase text-primary">
@@ -378,15 +348,6 @@ export default function AnalyticsPage() {
                       </tbody>
                     </table>
                   )}
-                  
-                  <details className="group border border-primary/20 rounded-none bg-surface-container-low p-2">
-                    <summary className="font-space text-[10px] font-bold uppercase text-on-surface-variant cursor-pointer hover:text-primary">
-                      Raw JSON
-                    </summary>
-                    <pre className="text-[10px] text-primary bg-white border border-primary/20 rounded-none p-2 mt-1 overflow-x-auto select-all">
-                      {JSON.stringify(browsers, null, 2)}
-                    </pre>
-                  </details>
                 </div>
               )}
             </Card>
@@ -417,11 +378,14 @@ export default function AnalyticsPage() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="label-meta text-center py-16 select-none">No device clicks recorded</div>
+                      <div className="flex flex-col items-center justify-center w-full h-full py-16 text-center space-y-2 border-2 border-dashed border-primary/20 bg-surface-container-low/20">
+                        <Monitor size={32} className="text-primary/30" />
+                        <p className="label-meta select-none">No device clicks recorded</p>
+                      </div>
                     )}
                   </div>
 
-                  {devices.length > 0 && (
+                  {devices.length > 0 && devices.some(d => d.value > 0) && (
                     <table className="w-full text-sm text-left border-collapse">
                       <thead>
                         <tr className="border-b-2 border-primary font-space text-[11px] font-bold uppercase text-primary">
@@ -439,15 +403,6 @@ export default function AnalyticsPage() {
                       </tbody>
                     </table>
                   )}
-                  
-                  <details className="group border border-primary/20 rounded-none bg-surface-container-low p-2">
-                    <summary className="font-space text-[10px] font-bold uppercase text-on-surface-variant cursor-pointer hover:text-primary">
-                      Raw JSON
-                    </summary>
-                    <pre className="text-[10px] text-primary bg-white border border-primary/20 rounded-none p-2 mt-1 overflow-x-auto select-all">
-                      {JSON.stringify(devices, null, 2)}
-                    </pre>
-                  </details>
                 </div>
               )}
             </Card>
@@ -482,11 +437,14 @@ export default function AnalyticsPage() {
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="label-meta text-center py-16 select-none">No click history logged</div>
+                      <div className="flex flex-col items-center justify-center w-full h-full py-16 text-center space-y-2 border-2 border-dashed border-primary/20 bg-surface-container-low/20">
+                        <TrendingUp size={32} className="text-primary/30" />
+                        <p className="label-meta select-none">No click history logged</p>
+                      </div>
                     )}
                   </div>
 
-                  {trends.length > 0 && (
+                  {trends.length > 0 && trends.some(t => t.clicks > 0) && (
                     <table className="w-full text-sm text-left border-collapse">
                       <thead>
                         <tr className="border-b-2 border-primary font-space text-[11px] font-bold uppercase text-primary">
@@ -504,15 +462,6 @@ export default function AnalyticsPage() {
                       </tbody>
                     </table>
                   )}
-                  
-                  <details className="group border border-primary/20 rounded-none bg-surface-container-low p-2">
-                    <summary className="font-space text-[10px] font-bold uppercase text-on-surface-variant cursor-pointer hover:text-primary">
-                      Raw JSON
-                    </summary>
-                    <pre className="text-[10px] text-primary bg-white border border-primary/20 rounded-none p-2 mt-1 overflow-x-auto select-all">
-                      {JSON.stringify(trends, null, 2)}
-                    </pre>
-                  </details>
                 </div>
               )}
             </Card>
@@ -533,9 +482,12 @@ export default function AnalyticsPage() {
             {visitsLoading ? (
               <SkeletonTable variant="visits" rowsCount={5} />
             ) : visits.length === 0 ? (
-              <p className="label-meta text-center py-16">
-                No redirection activity logs recorded for this link yet.
-              </p>
+              <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border-2 border-dashed border-primary/20 bg-surface-container-low/20">
+                <Globe size={36} className="text-primary/30 animate-pulse" />
+                <p className="label-meta">
+                  No redirection activity logs recorded for this link yet.
+                </p>
+              </div>
             ) : (
               <div className="space-y-5">
                 <div className="overflow-x-auto border-2 border-primary rounded-none bg-white">

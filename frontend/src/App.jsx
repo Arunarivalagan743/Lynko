@@ -63,10 +63,14 @@ const App = () => {
         toastOptions={{
           duration: 3500,
           style: {
-            background: 'rgb(var(--color-surface))',
-            color: 'rgb(var(--color-text))',
-            border: '1px solid rgb(var(--color-border))',
-            borderRadius: '12px',
+            background: '#f8faf5',
+            color: '#191c1a',
+            border: '2px solid #00322d',
+            borderRadius: '0px',
+            fontFamily: '"Hanken Grotesk", sans-serif',
+            fontSize: '14px',
+            fontWeight: '600',
+            boxShadow: '4px 4px 0px 0px #00322d',
           },
         }}
       />

@@ -27,6 +27,7 @@ export const createUrlSchema = z.object({
       }
     )
     .optional(),
+  platforms: z.array(z.string()).optional(),
 })
 
 export const updateUrlSchema = z
@@ -47,11 +48,15 @@ export const updateUrlSchema = z
       )
       .optional()
       .or(z.literal('')),
+    platforms: z.array(z.string()).optional(),
   })
   .refine(
-    (values) => (values.originalUrl && values.originalUrl !== '') || (values.expiresAt && values.expiresAt !== ''),
+    (values) =>
+      (values.originalUrl && values.originalUrl !== '') ||
+      (values.expiresAt && values.expiresAt !== '') ||
+      (values.platforms && values.platforms.length > 0),
     {
-      message: 'At least one field (Original URL or Expiration Date) must be provided to update',
+      message: 'At least one field (Original URL, Expiration Date or Platforms) must be provided to update',
       path: ['originalUrl'],
     }
   )

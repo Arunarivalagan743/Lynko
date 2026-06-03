@@ -171,7 +171,7 @@ https://github.com,github
               {/* Submit Trigger */}
               <Button
                 onClick={submitBulkUpload}
-                disabled={parsedRows.length === 0 || validationErrors.length > 0}
+                disabled={parsedRows.length === 0}
                 loading={uploading}
                 size="xl"
                 className="w-full select-none"

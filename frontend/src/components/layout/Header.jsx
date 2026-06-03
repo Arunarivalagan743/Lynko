@@ -1,11 +1,13 @@
 import React from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Menu, Search } from 'lucide-react'
 import UserMenu from './UserMenu.jsx'
 import { PATHS } from '../../routes/paths.js'
 
 export default function Header({ onMenuToggle }) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const pathname = location.pathname
 
   // Derive current page title dynamically from pathname
@@ -38,12 +40,16 @@ export default function Header({ onMenuToggle }) {
 
       <div className="flex flex-1 max-w-lg mx-6 lg:mx-10">
         <div className="relative w-full">
-          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant/50" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary/50" />
           <input
             type="text"
-            placeholder="Search links..."
-            disabled
-            className="w-full rounded-none border-2 border-primary/40 bg-surface-container-low pl-11 pr-4 py-2.5 text-sm text-on-surface-variant placeholder:text-on-surface-variant/35 focus:outline-none cursor-not-allowed transition-colors"
+            placeholder="Search links by URL or code..."
+            value={searchParams.get('q') || ''}
+            onChange={(e) => {
+              const query = e.target.value
+              navigate(`/urls?q=${encodeURIComponent(query)}`)
+            }}
+            className="w-full rounded-none border-2 border-primary bg-surface-container-low pl-11 pr-4 py-2.5 text-sm text-primary placeholder:text-on-surface-variant/35 focus:border-secondary focus:outline-none transition-colors"
           />
         </div>
       </div>

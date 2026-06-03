@@ -5,11 +5,13 @@ import {
   getRecentVisits,
   getBrowserAnalytics,
   getDeviceAnalytics,
+  getCountryAnalytics,
   getDailyTrends,
 } from '../api/analyticsApi.js'
 import {
   transformBrowserData,
   transformDeviceData,
+  transformCountryData,
   transformTrendData,
   transformVisitData,
 } from '../utils/analyticsTransformers.js'
@@ -37,6 +39,7 @@ export const useUrlAnalytics = (urlId) => {
   })
   const [browsers, setBrowsers] = useState([])
   const [devices, setDevices] = useState([])
+  const [countries, setCountries] = useState([])
   const [trends, setTrends] = useState([])
 
   // Action-specific Loading Indicators
@@ -44,6 +47,7 @@ export const useUrlAnalytics = (urlId) => {
   const [visitsLoading, setVisitsLoading] = useState(false)
   const [browsersLoading, setBrowsersLoading] = useState(false)
   const [devicesLoading, setDevicesLoading] = useState(false)
+  const [countriesLoading, setCountriesLoading] = useState(false)
   const [trendsLoading, setTrendsLoading] = useState(false)
 
   // Compile active parameters for queries
@@ -117,6 +121,20 @@ export const useUrlAnalytics = (urlId) => {
     }
   }, [urlId, getQueryParams])
 
+  const fetchCountries = useCallback(async (customParams = {}) => {
+    if (!urlId) return
+    setCountriesLoading(true)
+    try {
+      const params = getQueryParams(customParams)
+      const rawData = await getCountryAnalytics(urlId, params)
+      setCountries(transformCountryData(rawData))
+    } catch (err) {
+      console.error('Failed fetching country analytics:', err)
+    } finally {
+      setCountriesLoading(false)
+    }
+  }, [urlId, getQueryParams])
+
   // Fetch daily traffic trend history logs
   const fetchTrends = useCallback(async (customParams = {}) => {
     if (!urlId) return
@@ -140,9 +158,10 @@ export const useUrlAnalytics = (urlId) => {
       fetchVisits(1, limit), // Reset to page 1 on search reload
       fetchBrowsers(),
       fetchDevices(),
+      fetchCountries(),
       fetchTrends(),
     ])
-  }, [urlId, fetchSummary, fetchVisits, fetchBrowsers, fetchDevices, fetchTrends, limit])
+  }, [urlId, fetchSummary, fetchVisits, fetchBrowsers, fetchDevices, fetchCountries, fetchTrends, limit])
 
   // Update date ranges and re-execute queries
   const changeDateRange = useCallback((from, to) => {
@@ -168,6 +187,7 @@ export const useUrlAnalytics = (urlId) => {
     visits,
     browsers,
     devices,
+    countries,
     trends,
 
     // Loading Indicators
@@ -175,6 +195,7 @@ export const useUrlAnalytics = (urlId) => {
     visitsLoading,
     browsersLoading,
     devicesLoading,
+    countriesLoading,
     trendsLoading,
 
     // Fetch Trigger Actions
@@ -182,6 +203,7 @@ export const useUrlAnalytics = (urlId) => {
     fetchVisits,
     fetchBrowsers,
     fetchDevices,
+    fetchCountries,
     fetchTrends,
     fetchAllAnalytics,
     changeDateRange,

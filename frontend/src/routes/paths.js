@@ -8,6 +8,7 @@ export const PATHS = {
   URLS: '/urls',
   ANALYTICS_BASE: '/analytics',
   ANALYTICS: '/analytics/:id',
+  ENGAGEMENT: '/engagement',
   BULK_UPLOAD: '/bulk-upload',
   PUBLIC_STATS: '/stats/:shortCode',
   PUBLIC_STATS_BASE: '/stats',

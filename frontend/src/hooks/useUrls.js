@@ -68,6 +68,12 @@ export const useUrls = () => {
     try {
       const response = await createUrlRequest(payload)
       const newUrl = response.url || response
+      if (response.platformLinks) {
+        newUrl.platformLinks = response.platformLinks
+      }
+      if (response.qrCodeDataUrl) {
+        newUrl.qrCodeDataUrl = response.qrCodeDataUrl
+      }
 
       // Immediate cache append
       setUrls((prev) => [newUrl, ...prev])

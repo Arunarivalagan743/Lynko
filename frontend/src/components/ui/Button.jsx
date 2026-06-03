@@ -30,7 +30,7 @@ const Button = forwardRef(
           // Variants
           variant === 'primary' && 'border-2 border-primary bg-primary text-white shadow-brutal hover:bg-primary-container active:translate-x-[4px] active:translate-y-[4px] active:shadow-none',
           variant === 'secondary' &&
-            'border-2 border-primary bg-white text-primary shadow-brutal hover:bg-surface-container-low active:translate-x-[4px] active:translate-y-[4px] active:shadow-none',
+          'border-2 border-primary bg-white text-primary shadow-brutal hover:bg-surface-container-low active:translate-x-[4px] active:translate-y-[4px] active:shadow-none',
           variant === 'ghost' && 'bg-transparent text-primary hover:bg-surface-container-low border border-transparent',
           className,
         )}

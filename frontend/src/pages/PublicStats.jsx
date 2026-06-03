@@ -4,6 +4,7 @@ import { usePublicStats } from '../hooks/usePublicStats.js'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import PageLoader from '../components/loading/PageLoader.jsx'
+import toast from 'react-hot-toast'
 import { 
   TrendingUp, 
   BarChart2, 
@@ -13,8 +14,10 @@ import {
   AlertCircle, 
   ArrowLeft, 
   Search, 
-  ShieldAlert,
-  Users
+  Users,
+  Share2,
+  CheckCircle2,
+  Lightbulb
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -58,6 +61,12 @@ export default function PublicStatsPage() {
     }
   }
 
+  const handleShareReport = () => {
+    const statsUrl = `${window.location.origin}/stats/${shortCode}`
+    navigator.clipboard.writeText(statsUrl)
+    toast.success('Stats report link copied to clipboard!')
+  }
+
   // Render search lookup card if no short code is specified in the route
   if (!shortCode) {
     return (
@@ -97,6 +106,14 @@ export default function PublicStatsPage() {
     )
   }
 
+  // Calculate dynamic stats metrics
+  const topBrowser = stats?.browsers?.length > 0 && stats.browsers[0].value > 0 ? stats.browsers[0].name : 'None'
+  const topDevice = stats?.devices?.length > 0 && stats.devices[0].value > 0 ? stats.devices[0].name : 'None'
+  
+  const total = stats?.totalClicks || 0
+  const human = stats?.humanClicks || 0
+  const qualityScore = total > 0 ? Math.round((human / total) * 100) : 100
+
   return (
     <div className="space-y-6">
       {/* Top Header Control Bar */}
@@ -113,28 +130,38 @@ export default function PublicStatsPage() {
           <div className="space-y-0.5">
             <h1 className="text-xl font-anton tracking-wider text-primary uppercase">Link Public Statistics</h1>
             <p className="text-sm text-on-surface-variant font-medium">
-              Viewing traffic data for short code: <strong className="text-secondary font-bold">/{shortCode}</strong>
+              Viewing traffic data for short code: <strong className="text-secondary font-bold font-space">/{shortCode}</strong>
             </p>
           </div>
         </div>
 
-        {/* Quick Search Header Bar */}
-        <form onSubmit={handleLookupSubmit} className="flex items-center gap-2 max-w-xs w-full">
-          <input
-            type="text"
-            required
-            placeholder="Search another code..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="h-10 rounded-none border-2 border-primary bg-white px-3 font-sans text-sm text-on-background placeholder:text-on-surface-variant/50 transition-colors focus:border-secondary focus:outline-none focus:ring-0 w-full"
-          />
+        <div className="flex items-center gap-2 max-w-md w-full sm:justify-end">
           <Button
-            type="submit"
-            className="h-10 py-0 px-4 flex-shrink-0"
+            onClick={handleShareReport}
+            variant="secondary"
+            className="h-10 flex items-center gap-2 px-4 whitespace-nowrap font-space text-xs font-bold uppercase"
           >
-            Go
+            <Share2 size={15} /> Share Report
           </Button>
-        </form>
+
+          {/* Quick Search Header Bar */}
+          <form onSubmit={handleLookupSubmit} className="flex items-center gap-2 w-full max-w-[200px]">
+            <input
+              type="text"
+              required
+              placeholder="Search code..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="h-10 rounded-none border-2 border-primary bg-white px-3 font-sans text-sm text-on-background placeholder:text-on-surface-variant/50 transition-colors focus:border-secondary focus:outline-none focus:ring-0 w-full"
+            />
+            <Button
+              type="submit"
+              className="h-10 py-0 px-3 flex-shrink-0"
+            >
+              Go
+            </Button>
+          </form>
+        </div>
       </div>
 
       {loading && !stats ? (
@@ -189,42 +216,84 @@ export default function PublicStatsPage() {
               </div>
             </Card>
 
-            {/* Human Clicks */}
+            {/* Top Browser */}
             <Card className="flex flex-col justify-between p-4 space-y-2 bg-secondary-container" shadowSize="sm">
               <div className="flex items-center justify-between text-primary">
-                <span className="font-space text-xs font-bold uppercase tracking-wider">Human Clicks</span>
-                <Users size={16} />
+                <span className="font-space text-xs font-bold uppercase tracking-wider">Top Browser</span>
+                <Monitor size={16} />
               </div>
               <div className="space-y-1">
-                <h3 className="text-3xl font-anton text-primary">{stats.humanClicks}</h3>
-                <p className="font-space text-[9px] font-bold uppercase text-on-secondary-container">Verified user activities</p>
+                <h3 className="text-2xl font-anton text-primary truncate">{topBrowser}</h3>
+                <p className="font-space text-[9px] font-bold uppercase text-on-secondary-container">Most active client browser</p>
               </div>
             </Card>
 
-            {/* Bot Clicks */}
+            {/* Top Device */}
             <Card className="flex flex-col justify-between p-4 space-y-2 bg-tertiary-container" shadowSize="sm">
               <div className="flex items-center justify-between text-tertiary">
-                <span className="font-space text-xs font-bold uppercase tracking-wider text-tertiary">Bot Clicks</span>
+                <span className="font-space text-xs font-bold uppercase tracking-wider text-tertiary">Top Device</span>
                 <Monitor size={16} className="text-tertiary" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-3xl font-anton text-tertiary">{stats.botClicks}</h3>
-                <p className="font-space text-[9px] font-bold uppercase text-on-tertiary-container">Automated crawlers & spikes</p>
+                <h3 className="text-2xl font-anton text-tertiary truncate">{topDevice}</h3>
+                <p className="font-space text-[9px] font-bold uppercase text-on-tertiary-container">Primary visitor device</p>
               </div>
             </Card>
 
-            {/* Suspicious Clicks */}
+            {/* Traffic Quality */}
             <Card className="flex flex-col justify-between p-4 space-y-2 bg-error-container" shadowSize="sm">
               <div className="flex items-center justify-between text-error">
-                <span className="font-space text-xs font-bold uppercase tracking-wider text-error">Suspicious Clicks</span>
-                <ShieldAlert size={16} />
+                <span className="font-space text-xs font-bold uppercase tracking-wider text-error">Traffic Quality</span>
+                <Users size={16} />
               </div>
               <div className="space-y-1">
-                <h3 className="text-3xl font-anton text-error">{stats.suspiciousClicks}</h3>
-                <p className="font-space text-[9px] font-bold uppercase text-on-error-container">Blocked/flagged anomalies</p>
+                <h3 className="text-3xl font-anton text-error">{qualityScore}%</h3>
+                <p className="font-space text-[9px] font-bold uppercase text-on-error-container">Verified human traffic ratio</p>
               </div>
             </Card>
           </div>
+
+          {/* Traffic Quality Insights Summary */}
+          <Card className="space-y-4 !p-5 border-2 border-primary" shadowSize="sm">
+            <h2 className="text-sm font-anton uppercase tracking-wider text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
+              <Lightbulb size={16} className="text-primary animate-pulse" />
+              Performance Insights Report
+            </h2>
+            
+            {total > 0 ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex items-start gap-3 p-3 bg-surface-container-low border border-primary/10">
+                  <CheckCircle2 size={18} className="text-secondary mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-bold font-space uppercase text-primary">Traffic Verification</h4>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      {qualityScore >= 80 
+                        ? `Exceptional traffic health! ${qualityScore}% of redirection visits are verified human interactions with minimal automated crawlers.` 
+                        : `Noticeable non-human traffic detected. ${100 - qualityScore}% of actions originate from spiders, crawlers, or headless scrapers.`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 bg-surface-container-low border border-primary/10">
+                  <Monitor size={18} className="text-secondary mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-bold font-space uppercase text-primary">Audience Platform</h4>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      {topDevice !== 'None' 
+                        ? `Visitors predominantly engage using ${topDevice.toLowerCase()} clients. Tailoring target content to this layout is highly advised.` 
+                        : `Awaiting device profiling metrics to determine visitor viewport preferences.`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="font-space text-xs font-semibold text-on-surface-variant">
+                  No redirection traffic insights logged yet. Share your short link to gather statistics!
+                </p>
+              </div>
+            )}
+          </Card>
 
           {/* Breakdown Grids */}
           <div className="grid gap-6 md:grid-cols-3">
@@ -260,11 +329,13 @@ export default function PublicStatsPage() {
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none">No browser clicks recorded</div>
+                    <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
+                      No browser clicks recorded
+                    </div>
                   )}
                 </div>
 
-                {stats.browsers.length > 0 && (
+                {stats.browsers.length > 0 && stats.browsers.some(b => b.value > 0) && (
                   <table className="w-full text-xs text-left border-collapse">
                     <thead>
                       <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary">
@@ -282,15 +353,6 @@ export default function PublicStatsPage() {
                     </tbody>
                   </table>
                 )}
-
-                <details className="group pt-1 border-2 border-primary rounded-none bg-surface-container-low p-1.5">
-                  <summary className="font-space text-[10px] font-bold uppercase text-primary cursor-pointer hover:text-secondary">
-                    Raw JSON
-                  </summary>
-                  <pre className="text-[10px] text-primary bg-white border-2 border-primary rounded-none p-2 mt-1 overflow-x-auto select-all">
-                    {JSON.stringify(stats.browsers, null, 2)}
-                  </pre>
-                </details>
               </div>
             </Card>
 
@@ -317,11 +379,13 @@ export default function PublicStatsPage() {
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none">No device clicks recorded</div>
+                    <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
+                      No device clicks recorded
+                    </div>
                   )}
                 </div>
 
-                {stats.devices.length > 0 && (
+                {stats.devices.length > 0 && stats.devices.some(d => d.value > 0) && (
                   <table className="w-full text-xs text-left border-collapse">
                     <thead>
                       <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary">
@@ -339,15 +403,6 @@ export default function PublicStatsPage() {
                     </tbody>
                   </table>
                 )}
-
-                <details className="group pt-1 border-2 border-primary rounded-none bg-surface-container-low p-1.5">
-                  <summary className="font-space text-[10px] font-bold uppercase text-primary cursor-pointer hover:text-secondary">
-                    Raw JSON
-                  </summary>
-                  <pre className="text-[10px] text-primary bg-white border-2 border-primary rounded-none p-2 mt-1 overflow-x-auto select-all">
-                    {JSON.stringify(stats.devices, null, 2)}
-                  </pre>
-                </details>
               </div>
             </Card>
 
@@ -380,11 +435,13 @@ export default function PublicStatsPage() {
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none">No click history logged</div>
+                    <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
+                      No click history logged
+                    </div>
                   )}
                 </div>
 
-                {stats.trends.length > 0 && (
+                {stats.trends.length > 0 && stats.trends.some(t => t.clicks > 0) && (
                   <table className="w-full text-xs text-left border-collapse">
                     <thead>
                       <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary">
@@ -402,28 +459,9 @@ export default function PublicStatsPage() {
                     </tbody>
                   </table>
                 )}
-
-                <details className="group pt-1 border-2 border-primary rounded-none bg-surface-container-low p-1.5">
-                  <summary className="font-space text-[10px] font-bold uppercase text-primary cursor-pointer hover:text-secondary">
-                    Raw JSON
-                  </summary>
-                  <pre className="text-[10px] text-primary bg-white border-2 border-primary rounded-none p-2 mt-1 overflow-x-auto select-all">
-                    {JSON.stringify(stats.trends, null, 2)}
-                  </pre>
-                </details>
               </div>
             </Card>
           </div>
-
-          {/* 6. JSON Verification Section */}
-          <details className="group border-2 border-primary rounded-none bg-surface-container-low p-2">
-            <summary className="font-space text-xs font-bold uppercase tracking-wider text-primary cursor-pointer hover:text-secondary select-none">
-              View Verification JSON Payload
-            </summary>
-            <pre className="text-xs text-primary bg-white border-2 border-primary rounded-none p-4 mt-2 overflow-x-auto select-all">
-              {JSON.stringify(stats, null, 2)}
-            </pre>
-          </details>
         </>
       ) : null}
     </div>

@@ -1,18 +1,47 @@
 import React, { lazy } from 'react'
 import { PATHS } from './paths.js'
 
+const lazyWithPreload = (factory) => {
+  const Component = lazy(factory)
+  Component.preload = factory
+  return Component
+}
+
 // Lazy-loaded components for route chunks optimization
-const Home = lazy(() => import('../pages/Home.jsx'))
-const Login = lazy(() => import('../pages/auth/Login.jsx'))
-const Signup = lazy(() => import('../pages/auth/Signup.jsx'))
-const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword.jsx'))
-const ResetPassword = lazy(() => import('../pages/auth/ResetPassword.jsx'))
-const Dashboard = lazy(() => import('../pages/Dashboard.jsx'))
-const Urls = lazy(() => import('../pages/Urls.jsx'))
-const Profile = lazy(() => import('../pages/Profile.jsx'))
-const BulkUpload = lazy(() => import('../pages/BulkUpload.jsx'))
-const PublicStats = lazy(() => import('../pages/PublicStats.jsx'))
-const Analytics = lazy(() => import('../pages/Analytics.jsx'))
+const Home = lazyWithPreload(() => import('../pages/Home.jsx'))
+const Login = lazyWithPreload(() => import('../pages/auth/Login.jsx'))
+const Signup = lazyWithPreload(() => import('../pages/auth/Signup.jsx'))
+const ForgotPassword = lazyWithPreload(() => import('../pages/auth/ForgotPassword.jsx'))
+const ResetPassword = lazyWithPreload(() => import('../pages/auth/ResetPassword.jsx'))
+const Dashboard = lazyWithPreload(() => import('../pages/Dashboard.jsx'))
+const Urls = lazyWithPreload(() => import('../pages/Urls.jsx'))
+const Profile = lazyWithPreload(() => import('../pages/Profile.jsx'))
+const BulkUpload = lazyWithPreload(() => import('../pages/BulkUpload.jsx'))
+const PublicStats = lazyWithPreload(() => import('../pages/PublicStats.jsx'))
+const Analytics = lazyWithPreload(() => import('../pages/Analytics.jsx'))
+const EngagementDashboard = lazyWithPreload(() => import('../pages/EngagementDashboard.jsx'))
+
+const routePreloaders = {
+  [PATHS.HOME]: () => Home.preload(),
+  [PATHS.LOGIN]: () => Login.preload(),
+  [PATHS.SIGNUP]: () => Signup.preload(),
+  [PATHS.FORGOT_PASSWORD]: () => ForgotPassword.preload(),
+  [PATHS.RESET_PASSWORD]: () => ResetPassword.preload(),
+  [PATHS.DASHBOARD]: () => Dashboard.preload(),
+  [PATHS.URLS]: () => Urls.preload(),
+  [PATHS.PROFILE]: () => Profile.preload(),
+  [PATHS.BULK_UPLOAD]: () => BulkUpload.preload(),
+  [PATHS.ANALYTICS_BASE]: () => Analytics.preload(),
+  [PATHS.PUBLIC_STATS_BASE]: () => PublicStats.preload(),
+  [PATHS.ENGAGEMENT]: () => EngagementDashboard.preload(),
+}
+
+export const preloadRoute = (path) => {
+  const preload = routePreloaders[path]
+  if (preload) {
+    preload()
+  }
+}
 
 export const routesConfig = [
   // Public Routes
@@ -88,6 +117,11 @@ export const routesConfig = [
   {
     path: PATHS.ANALYTICS,
     element: <Analytics />,
+    isProtected: true,
+  },
+  {
+    path: PATHS.ENGAGEMENT,
+    element: <EngagementDashboard />,
     isProtected: true,
   },
 ]

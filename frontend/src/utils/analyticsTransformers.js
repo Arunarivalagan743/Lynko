@@ -33,6 +33,21 @@ export const transformDeviceData = (data) => {
 }
 
 /**
+ * Normalizes country breakdown list.
+ * Input: { countries: [ { country: 'India', count: 12 } ] }
+ * Output: [ { name: 'India', value: 12 } ]
+ */
+export const transformCountryData = (data) => {
+  const countriesList = data?.countries || data || []
+  return countriesList
+    .map((item) => ({
+      name: item.country || 'Unknown',
+      value: item.count !== undefined ? item.count : item.value || 0,
+    }))
+    .sort((a, b) => b.value - a.value)
+}
+
+/**
  * Normalizes daily trends data for time-series charts.
  * Input: { trends: [ { date: '2026-06-01', count: 5 } ] }
  * Output: [ { date: '2026-06-01', clicks: 5, formattedDate: 'Jun 1' } ]
@@ -73,19 +88,25 @@ export const transformVisitData = (data) => {
     totalPages: data?.totalPages || 1,
   }
 
-  const visits = visitsList.map((visit) => ({
+  const visits = visitsList.map((visit) => {
+    const ip = visit.ipAddress || visit.ip || 'Anonymous'
+    const isLocal = ip === '127.0.0.1' || ip === '::1' || ip.includes('127.0.0.1')
+    const country = visit.country || (isLocal ? 'Localhost' : 'Unknown')
+
+    return {
     id: visit._id || visit.id,
-    ip: visit.ipAddress || visit.ip || 'Anonymous',
+    ip,
     browser: visit.browser || 'Unknown',
     device: visit.device || 'Unknown',
     os: visit.os || 'Unknown',
-    country: visit.country || 'Unknown',
+    country,
     isBot: Boolean(visit.isBot),
     clickQuality: visit.clickQuality || 'good',
     referrer: visit.referrer || 'Direct',
     campaign: visit.campaign || 'None',
     clickedAt: visit.createdAt || visit.clickedAt || visit.timestamp,
-  }))
+    }
+  })
 
   return {
     visits,

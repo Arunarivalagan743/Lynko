@@ -20,6 +20,11 @@ export const getDeviceAnalytics = async (id, params = {}) => {
   return response.data
 }
 
+export const getCountryAnalytics = async (id, params = {}) => {
+  const response = await apiClient.get(`/api/urls/${id}/countries`, { params })
+  return response.data
+}
+
 export const getDailyTrends = async (id, params = {}) => {
   const response = await apiClient.get(`/api/urls/${id}/trends`, { params })
   return response.data

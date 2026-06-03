@@ -5,16 +5,25 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: 0 50 45; /* Forest Green (#00322d) */
-  --color-secondary: 44 105 86; /* Mint Green (#2c6956) */
-  --color-surface: 248 250 245; /* Off-white (#f8faf5) */
-  --color-background: 248 250 245; /* Off-white (#f8faf5) */
-  --color-border: 0 50 45; /* Forest Green outline */
+  --color-primary: 0 50 45;
+  /* Forest Green (#00322d) */
+  --color-secondary: 44 105 86;
+  /* Mint Green (#2c6956) */
+  --color-surface: 248 250 245;
+  /* Off-white (#f8faf5) */
+  --color-background: 248 250 245;
+  /* Off-white (#f8faf5) */
+  --color-border: 0 50 45;
+  /* Forest Green outline */
   --color-success: 44 105 86;
-  --color-warning: 99 96 55; /* Soft Yellow-Green (#636037) */
-  --color-error: 186 26 26; /* Deep Red (#ba1a1a) */
-  --color-text: 25 28 26; /* Deep Charcoal (#191c1a) */
-  --color-text-muted: 63 73 71; /* Charcoal variant (#3f4947) */
+  --color-warning: 99 96 55;
+  /* Soft Yellow-Green (#636037) */
+  --color-error: 186 26 26;
+  /* Deep Red (#ba1a1a) */
+  --color-text: 25 28 26;
+  /* Deep Charcoal (#191c1a) */
+  --color-text-muted: 63 73 71;
+  /* Charcoal variant (#3f4947) */
 }
 
 * {
@@ -45,6 +54,7 @@ body {
 /* ── Typography utility classes ── */
 
 @layer components {
+
   /* Page title — 36px Anton uppercase */
   .heading-page {
     @apply text-page font-anton uppercase text-primary;
@@ -69,6 +79,7 @@ body {
   .card-hover {
     @apply transition-all duration-150;
   }
+
   .card-hover:hover {
     transform: translateY(-1px);
     box-shadow: 5px 5px 0px 0px #00322d;
@@ -80,13 +91,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #f2f4ef;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #bfc9c6;
   border: 1px solid #bfc9c6;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #707977;
 }
@@ -111,6 +125,7 @@ body {
 .dog-ear {
   position: relative;
 }
+
 .dog-ear::before {
   content: '';
   position: absolute;
@@ -123,6 +138,7 @@ body {
   border-color: transparent transparent #d8dbd6 transparent;
   display: block;
 }
+
 .dog-ear::after {
   content: '';
   position: absolute;
