@@ -323,47 +323,24 @@ npm run dev
 
 ---
 
-## 🎨 Design & Sample Outputs
-Below are visual maps of our retro-brutalist layouts:
+## 🖼️ Application Screenshots & Sample Outputs
+Below are the actual screenshots of our retro-brutalist dashboard, link tracking analytics, bulk creation, and setting layouts:
 
-### 1. Main Dashboard Interface
-```
-┌────────────────────────────────────────────────────────┐
-│  ⚡ LYNKO     Dashboard   URLs   Analytics   Settings │
-├────────────────────────────────────────────────────────┤
-│  ⚡ QUICK SHORTEN                                      │
-│  [ Destination URL ]  [ Custom Alias ]  [ Expiry Date ]│
-│  └─[ Snip It Button ]                                  │
-├────────────────────────────────────────────────────────┤
-│  🏆 LATEST TRAILS                                      │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │ Short URL  │  Original URL  │ Clicks │ Created   │  │
-│  ├────────────┼────────────────┼────────┼───────────┤  │
-│  │ /r/promo   │  https://...   │   42   │ 10m ago   │  │
-│  └────────────┴────────────────┴────────┴───────────┘  │
-└────────────────────────────────────────────────────────┘
-```
+- **Dashboard Workspace**:
+  ![Dashboard](./frontend/src/assets/Output/Screenshot%202026-06-03%20220729.png)
+  ![Dashboard Layout](./frontend/src/assets/Output/Screenshot%202026-06-03%20220747.png)
 
-### 2. Analytics Visualization Page
-```
-┌────────────────────────────────────────────────────────┐
-│  📊 TRAFFIC DYNAMICS - /r/promo                        │
-│  ┌─────────────────────┐  ┌─────────────────────────┐  │
-│  │ Clicks: 42          │  │ Devices                 │  │
-│  │ Quality: 95% Human  │  │ Mobile [███████░░░] 70%  │  │
-│  │ Active: 3 days      │  │ Desktop [███░░░░░░░] 30%  │  │
-│  └─────────────────────┘  └─────────────────────────┘  │
-│  📈 CLICK DENSITY TREND                                │
-│    Clicks                                              │
-│      ▲                                                 │
-│   20 ┼       / \                                       │
-│   10 ┼  ____/   \____                                  │
-│      └────────────────────────► Date                   │
-└────────────────────────────────────────────────────────┘
-```
+- **Detailed Analytics Dashboard**:
+  ![Analytics Logs](./frontend/src/assets/Output/Screenshot%202026-06-03%20220805.png)
+  ![Traffic Analytics](./frontend/src/assets/Output/Screenshot%202026-06-03%20220844.png)
+  ![Link Telemetry Chart](./frontend/src/assets/Output/Screenshot%202026-06-03%20220903.png)
 
-### 3. Database Documents
-Refer to the exact JSON models shown in the `ARCHITECTURE.md` file or standard query logs.
+- **Utility Pages & Forms**:
+  ![Bulk Import CSV](./frontend/src/assets/Output/Screenshot%202026-06-03%20220938.png)
+  ![Account Profile Settings](./frontend/src/assets/Output/Screenshot%202026-06-03%20220958.png)
+  ![Custom Integrations](./frontend/src/assets/Output/Screenshot%202026-06-03%20221016.png)
+  ![Authentication Views](./frontend/src/assets/Output/Screenshot%202026-06-03%20154900.png)
+  ![Registration Profiles](./frontend/src/assets/Output/Screenshot%202026-06-03%20215015.png)
 
 ---
 
