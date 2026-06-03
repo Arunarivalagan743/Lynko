@@ -29,8 +29,3 @@ export const getDailyTrends = async (id, params = {}) => {
   const response = await apiClient.get(`/api/urls/${id}/trends`, { params })
   return response.data
 }
-
-export const getGeoPins = async (id, params = {}) => {
-  const response = await apiClient.get(`/api/urls/${id}/geopins`, { params })
-  return response.data
-}

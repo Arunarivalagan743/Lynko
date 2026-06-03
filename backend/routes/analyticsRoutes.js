@@ -6,7 +6,6 @@ const {
   getDeviceAnalytics,
   getCountryAnalytics,
   getDailyTrends,
-  getGeoPins,
 } = require("../controllers/analyticsController");
 const { authenticate } = require("../middleware/authMiddleware");
 const { validate } = require("../middleware/validate");
@@ -67,12 +66,6 @@ router.get(
   getDailyTrends
 );
 
-router.get(
-  "/:id/geopins",
-  authenticate,
-  validate(urlIdParamSchema, "params"),
-  validate(analyticsSummaryQuerySchema, "query"),
-  getGeoPins
-);
+
 
 module.exports = { analyticsRoutes: router };

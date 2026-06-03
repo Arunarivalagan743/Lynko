@@ -76,15 +76,6 @@ export default function UserMenu() {
             <span>My Profile</span>
           </Link>
 
-          <Link
-            to={PATHS.PROFILE}
-            onClick={() => setIsOpen(false)}
-            className="flex w-full items-center gap-2 rounded-none px-3 py-2 text-sm font-semibold text-primary hover:bg-surface-container-low transition-colors"
-          >
-            <Settings size={16} className="text-primary" />
-            <span>Settings</span>
-          </Link>
-
           <button
             onClick={() => {
               setIsOpen(false)

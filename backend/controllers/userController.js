@@ -21,7 +21,7 @@ const getProfile = async (req, res, next) => {
 const updateProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { email, name, phone } = req.body;
+    const { email } = req.body;
 
     const userRecord = await User.findById(userId).lean();
 
@@ -44,14 +44,6 @@ const updateProfile = async (req, res, next) => {
         }
       }
       update.email = normalizedEmail;
-    }
-
-    if (name) {
-      update.name = name.trim();
-    }
-
-    if (phone) {
-      update.phone = phone.trim();
     }
 
     const user = await User.findByIdAndUpdate(userId, update, {

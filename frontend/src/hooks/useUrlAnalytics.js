@@ -7,7 +7,6 @@ import {
   getDeviceAnalytics,
   getCountryAnalytics,
   getDailyTrends,
-  getGeoPins,
 } from '../api/analyticsApi.js'
 import {
   transformBrowserData,
@@ -42,7 +41,6 @@ export const useUrlAnalytics = (urlId) => {
   const [devices, setDevices] = useState([])
   const [countries, setCountries] = useState([])
   const [trends, setTrends] = useState([])
-  const [geoPins, setGeoPins] = useState([])
 
   // Action-specific Loading Indicators
   const [summaryLoading, setSummaryLoading] = useState(false)
@@ -51,7 +49,6 @@ export const useUrlAnalytics = (urlId) => {
   const [devicesLoading, setDevicesLoading] = useState(false)
   const [countriesLoading, setCountriesLoading] = useState(false)
   const [trendsLoading, setTrendsLoading] = useState(false)
-  const [geoPinsLoading, setGeoPinsLoading] = useState(false)
 
   // Compile active parameters for queries
   const getQueryParams = useCallback((extra = {}) => {
@@ -153,20 +150,6 @@ export const useUrlAnalytics = (urlId) => {
     }
   }, [urlId, getQueryParams])
 
-  const fetchGeoPins = useCallback(async (customParams = {}) => {
-    if (!urlId) return
-    setGeoPinsLoading(true)
-    try {
-      const params = getQueryParams(customParams)
-      const rawData = await getGeoPins(urlId, params)
-      setGeoPins(rawData?.geoPins || [])
-    } catch (err) {
-      console.error('Failed fetching geo pins analytics:', err)
-    } finally {
-      setGeoPinsLoading(false)
-    }
-  }, [urlId, getQueryParams])
-
   // Triggers queries for all analytics modules concurrently
   const fetchAllAnalytics = useCallback(async () => {
     if (!urlId) return
@@ -177,9 +160,8 @@ export const useUrlAnalytics = (urlId) => {
       fetchDevices(),
       fetchCountries(),
       fetchTrends(),
-      fetchGeoPins(),
     ])
-  }, [urlId, fetchSummary, fetchVisits, fetchBrowsers, fetchDevices, fetchCountries, fetchTrends, fetchGeoPins, limit])
+  }, [urlId, fetchSummary, fetchVisits, fetchBrowsers, fetchDevices, fetchCountries, fetchTrends, limit])
 
   // Update date ranges and re-execute queries
   const changeDateRange = useCallback((from, to) => {
@@ -207,7 +189,6 @@ export const useUrlAnalytics = (urlId) => {
     devices,
     countries,
     trends,
-    geoPins,
 
     // Loading Indicators
     summaryLoading,
@@ -216,7 +197,6 @@ export const useUrlAnalytics = (urlId) => {
     devicesLoading,
     countriesLoading,
     trendsLoading,
-    geoPinsLoading,
 
     // Fetch Trigger Actions
     fetchSummary,
@@ -225,7 +205,6 @@ export const useUrlAnalytics = (urlId) => {
     fetchDevices,
     fetchCountries,
     fetchTrends,
-    fetchGeoPins,
     fetchAllAnalytics,
     changeDateRange,
     changePage,

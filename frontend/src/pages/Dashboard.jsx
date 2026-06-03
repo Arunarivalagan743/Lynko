@@ -135,7 +135,7 @@ const Dashboard = () => {
   if (clicksLastWeek > 0) {
     clickGrowth = Math.round(((clicksThisWeek - clicksLastWeek) / clicksLastWeek) * 100)
   } else if (clicksThisWeek > 0) {
-    clickGrowth = 100
+    clickGrowth = clicksThisWeek * 100
   }
 
   // Sort recent URLs to display latest 5

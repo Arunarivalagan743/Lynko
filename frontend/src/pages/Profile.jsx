@@ -16,7 +16,6 @@ import {
   LogOut,
   Settings,
   Trash2,
-  Phone,
 } from 'lucide-react'
 import { updateProfile, deleteAccount } from '../services/userApi.js'
 
@@ -28,8 +27,6 @@ export default function SettingsPage() {
   const [error, setError] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
   const [email, setEmail] = useState('')
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
   const [confirmState, setConfirmState] = useState({ open: false, action: null })
 
   // Reload user info on mount to ensure we have fresh data
@@ -52,13 +49,7 @@ export default function SettingsPage() {
     if (user?.email) {
       setEmail(user.email)
     }
-    if (user?.name) {
-      setName(user.name)
-    }
-    if (user?.phone) {
-      setPhone(user.phone)
-    }
-  }, [user?.email, user?.name, user?.phone])
+  }, [user?.email])
 
   const handleLogout = async () => {
     setLoading(true)
@@ -71,25 +62,10 @@ export default function SettingsPage() {
   }
 
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email])
-  const normalizedName = useMemo(() => name.trim(), [name])
-  const normalizedPhone = useMemo(() => phone.trim(), [phone])
 
   const isEmailChanged = Boolean(
     user?.email && normalizedEmail && normalizedEmail !== user.email
   )
-  const isNameChanged = Boolean(
-    normalizedName && normalizedName !== (user?.name || '')
-  )
-  const isPhoneChanged = Boolean(
-    normalizedPhone && normalizedPhone !== (user?.phone || '')
-  )
-
-  const nameError = useMemo(() => {
-    if (!normalizedName) return null
-    if (normalizedName.length < 2) return 'Name must be at least 2 characters'
-    if (normalizedName.length > 60) return 'Name must be 60 characters or less'
-    return null
-  }, [normalizedName])
 
   const emailError = useMemo(() => {
     if (!email.trim()) return null
@@ -97,21 +73,9 @@ export default function SettingsPage() {
     return ok ? null : 'Enter a valid email address'
   }, [email])
 
-  const phoneError = useMemo(() => {
-    if (!normalizedPhone) return null
-    const ok = /^\+?[0-9]{7,15}$/.test(normalizedPhone)
-    return ok ? null : 'Phone must be 7-15 digits (optionally starting with +)'
-  }, [normalizedPhone])
+  const hasValidationErrors = Boolean(emailError)
 
-  const hasValidationErrors = Boolean(
-    emailError ||
-      nameError ||
-      phoneError
-  )
-
-  const isProfileDirty = Boolean(
-    isEmailChanged || isNameChanged || isPhoneChanged
-  )
+  const isProfileDirty = Boolean(isEmailChanged)
 
   const openConfirm = (action) => {
     setConfirmState({ open: true, action })
@@ -128,8 +92,6 @@ export default function SettingsPage() {
 
     const payload = {}
     if (isEmailChanged) payload.email = normalizedEmail
-    if (isNameChanged) payload.name = normalizedName
-    if (isPhoneChanged) payload.phone = normalizedPhone
     openConfirm({ type: 'update-profile', payload })
   }
 
@@ -141,8 +103,6 @@ export default function SettingsPage() {
   const handleCancelEdit = () => {
     if (updateLoading) return
     setEmail(user?.email || '')
-    setName(user?.name || '')
-    setPhone(user?.phone || '')
     setIsEditing(false)
   }
 
@@ -272,31 +232,13 @@ export default function SettingsPage() {
           </div>
 
           <form id="profile-form" onSubmit={handleProfileSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Input
-                label="Full Name"
-                type="text"
-                value={name}
-                error={nameError}
-                disabled={!isEditing}
-                onChange={(event) => setName(event.target.value)}
-              />
-              <Input
-                label="Email Address"
-                type="email"
-                value={email}
-                error={emailError}
-                disabled={!isEditing}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </div>
             <Input
-              label="Phone Number"
-              type="tel"
-              value={phone}
-              error={phoneError}
+              label="Email Address"
+              type="email"
+              value={email}
+              error={emailError}
               disabled={!isEditing}
-              onChange={(event) => setPhone(event.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
             />
           </form>
 
@@ -368,12 +310,6 @@ export default function SettingsPage() {
             ? [
                 confirmState.action?.payload?.email
                   ? `New email: ${confirmState.action.payload.email}`
-                  : null,
-                confirmState.action?.payload?.name
-                  ? `New name: ${confirmState.action.payload.name}`
-                  : null,
-                confirmState.action?.payload?.phone
-                  ? `New phone: ${confirmState.action.payload.phone}`
                   : null,
               ].filter(Boolean)
             : ['All links and analytics will be removed']
