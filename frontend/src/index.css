@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
 
 @tailwind base;
 @tailwind components;
@@ -31,60 +32,80 @@
 }
 
 html {
-  font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   background-color: rgb(var(--color-background));
   color: rgb(var(--color-text));
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  height: 100%;
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   color: rgb(var(--color-text));
   background-color: rgb(var(--color-background));
   line-height: 1.6;
 }
 
 #root {
-  min-height: 100vh;
+  height: 100%;
 }
 
 /* ── Typography utility classes ── */
 
 @layer components {
 
-  /* Page title — 36px Anton uppercase */
+  /* Page title — Anton 36px uppercase */
   .heading-page {
-    @apply text-page font-anton uppercase text-primary;
+    @apply text-2xl sm:text-page font-anton uppercase text-primary tracking-wide;
   }
 
-  /* Section title — 20px Anton uppercase */
+  /* Section title — Anton 20px uppercase */
   .heading-section {
     @apply text-section font-anton uppercase text-primary;
   }
 
-  /* Overline label — tiny Space Mono uppercase */
+  /* KPI number — Anton large, tight tracking */
+  .kpi-number {
+    @apply text-3xl sm:text-kpi font-anton text-primary leading-none tracking-tight;
+  }
+
+  /* Overline label — Space Mono uppercase (codes, metadata, tags) */
   .label-overline {
     @apply font-space text-xs font-bold uppercase tracking-[0.2em] text-primary;
   }
 
-  /* Meta label — smallest descriptor */
+  /* Meta label — Space Mono smallest descriptor */
   .label-meta {
     @apply font-space text-[10px] font-bold uppercase text-on-surface-variant;
   }
 
-  /* Card with hover lift */
+  /* Code label — Space Mono for short codes, timestamps, analytics tags */
+  .code-label {
+    @apply font-space text-[11px] font-semibold text-on-surface-variant tracking-wide;
+  }
+
+  /* Body default — Inter for body copy, form text */
+  .body-default {
+    @apply font-sans text-sm font-medium text-on-surface;
+  }
+
+  /* Card with hover lift — premium shadow step-up */
   .card-hover {
     @apply transition-all duration-150;
   }
 
   .card-hover:hover {
-    transform: translateY(-1px);
-    box-shadow: 5px 5px 0px 0px #00322d;
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 0px 0px #00322d;
   }
 }
+
 
 /* ── Custom Scrollbars — Paper Tech aesthetic ── */
 ::-webkit-scrollbar {
@@ -149,4 +170,16 @@ body {
   border-bottom: 2px solid #00322d;
   border-left: 2px solid #00322d;
   background: #f8faf5;
+}
+
+/* ── Form feedback animation ── */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

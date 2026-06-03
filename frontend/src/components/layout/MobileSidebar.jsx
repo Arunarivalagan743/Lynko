@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { NavLink, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
   Link2,
@@ -14,6 +15,7 @@ import {
 import { PATHS } from '../../routes/paths.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { preloadRoute } from '../../routes/routesConfig.jsx'
+import Logo from '../ui/Logo.jsx'
 
 export default function MobileSidebar({ isOpen, onClose }) {
   const { logout } = useAuth()
@@ -29,36 +31,42 @@ export default function MobileSidebar({ isOpen, onClose }) {
     { name: 'Settings', path: PATHS.PROFILE, icon: Settings },
   ], [])
 
-  if (!isOpen) return null
-
   return (
-    <div className="lg:hidden fixed inset-0 z-50 flex">
+    <div className="md:hidden fixed inset-0 z-50 flex">
       {/* Overlay backdrop */}
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
         aria-hidden="true"
       />
 
       {/* Drawer content panel */}
-      <aside className="relative flex flex-col w-72 max-w-xs border-r-2 border-primary bg-surface-container h-full z-10 transition-transform">
-        <div className="flex h-[72px] items-center justify-between px-7 border-b-2 border-primary bg-surface">
-          <Link to="/" onClick={onClose} className="hover:opacity-85 transition-opacity">
-            <span className="text-3xl font-anton uppercase tracking-wider text-primary select-none">
-              LYNKO
-            </span>
+      <motion.aside
+        initial={{ x: '-100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '-100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+        className="relative flex flex-col w-72 max-w-xs border-r-2 border-primary bg-white h-full z-10 shadow-none"
+      >
+        <div className="flex h-[72px] items-center justify-between px-6 border-b-2 border-primary bg-white">
+          <Link to="/" onClick={onClose} className="hover:opacity-80 transition-opacity">
+            <Logo variant="full" size="md" />
           </Link>
           <button
             onClick={onClose}
-            className="rounded-none p-1.5 bg-white border-2 border-primary shadow-brutal-sm hover:bg-surface-container-low transition-colors focus:outline-none"
+            className="p-1.5 rounded-none border-2 border-primary text-primary shadow-[2px_2px_0px_0px_rgba(0,50,45,1)] hover:bg-surface-container-low active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all duration-fast"
             aria-label="Close menu"
           >
-            <X size={18} className="text-primary" />
+            <X size={16} />
           </button>
         </div>
 
         {/* Main navigation list links */}
-        <nav className="flex-1 space-y-1 px-4 py-8 overflow-y-auto">
+        <nav className="flex-1 space-y-3 px-4 py-6 overflow-y-auto overflow-x-hidden">
           {navigationItems.map((item) => (
             <NavLink
               key={item.name}
@@ -66,33 +74,39 @@ export default function MobileSidebar({ isOpen, onClose }) {
               onClick={onClose}
               onMouseEnter={() => preloadRoute(item.path)}
               onFocus={() => preloadRoute(item.path)}
-              className={({ isActive }) =>
-                `flex items-center gap-3.5 px-4 py-3 text-[15px] font-medium whitespace-nowrap transition-all duration-normal ${isActive
-                  ? 'bg-secondary-container/40 text-primary border-l-[3px] border-primary font-semibold'
-                  : 'text-on-surface-variant border-l-[3px] border-transparent hover:bg-surface-container-high/60 hover:text-primary'
-                }`
-              }
+              className="relative flex items-center"
             >
-              <item.icon size={20} className="shrink-0" />
-              <span>{item.name}</span>
+              {({ isActive }) => (
+                <div
+                  className={`flex items-center gap-3 w-full rounded-none border-2 border-primary font-space font-bold uppercase tracking-wider text-xs whitespace-nowrap transition-all duration-fast px-4 py-3 ${
+                    isActive
+                      ? 'bg-primary text-white border-primary shadow-none translate-x-[1px] translate-y-[1px]'
+                      : 'bg-white text-primary border-primary shadow-[2px_2px_0px_0px_rgba(0,50,45,1)] hover:bg-surface-container-low hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none'
+                  }`}
+                >
+                  <item.icon size={16} className="shrink-0" />
+                  <span>{item.name}</span>
+                </div>
+              )}
             </NavLink>
           ))}
         </nav>
 
         {/* Footer / logout option */}
-        <div className="p-5 border-t-2 border-primary bg-surface">
+        <div className="p-4 border-t-2 border-primary bg-white">
           <button
             onClick={() => {
               onClose()
               logout()
             }}
-            className="flex w-full items-center gap-3 rounded-none border-2 border-primary bg-white px-4 py-2.5 text-sm font-bold text-error shadow-brutal-sm hover:bg-error-container active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all duration-fast"
+            className="flex w-full items-center justify-center gap-3 rounded-none border-2 border-primary bg-white py-2.5 text-xs font-space font-bold uppercase tracking-wider text-primary shadow-[2px_2px_0px_0px_rgba(0,50,45,1)] hover:bg-error/5 hover:text-error hover:border-error active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all duration-fast px-4"
+            title="Log out"
           >
-            <LogOut size={18} />
+            <LogOut size={16} className="shrink-0" />
             <span>Log out</span>
           </button>
         </div>
-      </aside>
+      </motion.aside>
     </div>
   )
 }

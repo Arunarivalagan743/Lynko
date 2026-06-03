@@ -7,6 +7,41 @@ const { validateUrlSafety } = require("./urlSafetyService");
 const SHORT_CODE_LENGTH = 8;
 const MAX_COLLISION_RETRIES = 5;
 
+/**
+ * Validates that a URL string is a proper http:// or https:// URL
+ * with a real hostname before any further processing.
+ * @param {string} rawUrl
+ */
+const validateUrlFormat = (rawUrl) => {
+  if (!rawUrl || typeof rawUrl !== "string") {
+    throw new AppError("URL is required", 400);
+  }
+  if (rawUrl.length > 2048) {
+    throw new AppError("URL exceeds maximum length of 2048 characters", 400);
+  }
+  let parsed;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new AppError(
+      "Invalid URL — please include the full address (e.g. https://example.com)",
+      400
+    );
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new AppError(
+      `Invalid URL protocol "${parsed.protocol}" — only http:// and https:// are allowed`,
+      400
+    );
+  }
+  if (!parsed.hostname || !parsed.hostname.includes(".")) {
+    throw new AppError(
+      "URL must include a valid domain name (e.g. example.com)",
+      400
+    );
+  }
+};
+
 const generateShortCode = () => nanoid(SHORT_CODE_LENGTH);
 
 const buildShortUrl = (baseUrl, shortCode) => {
@@ -30,6 +65,9 @@ const createShortUrl = async ({ ownerId, originalUrl, customAlias, expiresAt, ba
   if (!ownerId) {
     throw new AppError("Unauthorized", 401);
   }
+
+  // Validate URL format (http/https, real hostname) before safety check
+  validateUrlFormat(originalUrl);
 
   const safety = await validateUrlSafety(originalUrl);
   if (!safety.isSafe) {
@@ -137,6 +175,9 @@ const updateUrlById = async (ownerId, urlId, updates) => {
   }
 
   if (updates.originalUrl) {
+    // Validate URL format (http/https, real hostname) before safety check
+    validateUrlFormat(updates.originalUrl);
+
     const safety = await validateUrlSafety(updates.originalUrl);
     if (!safety.isSafe) {
       throw new AppError("URL failed safety checks", 400, {

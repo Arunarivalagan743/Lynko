@@ -20,11 +20,7 @@ const AppShell = ({ title, subtitle, children, actions }) => {
       <div className="mx-auto flex w-full max-w-[1200px] gap-6 px-6 py-8">
         <aside className="hidden w-60 flex-col gap-6 rounded-card border border-border/70 bg-white p-6 shadow-subtle lg:flex">
           <div className="flex items-center gap-3">
-            <Logo />
-            <div>
-              <p className="text-sm font-semibold text-text">Lynko</p>
-              <p className="text-xs text-text-muted">Workspace</p>
-            </div>
+            <Logo variant="full" size="md" />
           </div>
           <nav className="flex flex-col gap-1 text-sm">
             {sidebarLinks.map((item) => (

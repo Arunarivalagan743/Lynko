@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react'
 import Card from '../ui/Card.jsx'
 import Logo from '../ui/Logo.jsx'
+import { motion } from 'framer-motion'
 
 const highlights = [
   'Custom domains with enterprise DNS',
@@ -10,18 +11,18 @@ const highlights = [
 
 const AuthShell = ({ title, subtitle, children, footer }) => {
   return (
-    <main className="min-h-[calc(100vh-64px)] bg-background flex items-center justify-center">
+    <motion.main 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="min-h-[calc(100vh-64px)] bg-background flex items-center justify-center"
+    >
       <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 gap-12 px-6 py-12 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="flex flex-col justify-center">
           <Card className="space-y-6" dogEar shadowSize="lg">
             <div className="flex items-center gap-3">
-              <Logo />
-              <div>
-                <p className="font-space text-xs font-bold uppercase tracking-[0.24em] text-primary">
-                  Lynko Cloud
-                </p>
-                <p className="font-space text-[11px] font-semibold text-on-surface-variant">Link management platform</p>
-              </div>
+              <Logo size="md" variant="full" />
             </div>
             <div className="space-y-2 border-b-2 border-primary pb-4">
               <h1 className="text-3xl font-anton uppercase tracking-wide text-primary leading-none">
@@ -87,7 +88,7 @@ const AuthShell = ({ title, subtitle, children, footer }) => {
           </div>
         </div>
       </div>
-    </main>
+    </motion.main>
   )
 }
 

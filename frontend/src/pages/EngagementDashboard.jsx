@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import clsx from 'clsx'
 import {
   ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -30,7 +32,7 @@ import PlatformAnalyticsCard from '../components/PlatformAnalyticsCard.jsx'
 // ─────────────────────────────────────────────────────────────────────────────
 // Chart constants – Paper Tech palette
 // ─────────────────────────────────────────────────────────────────────────────
-const COLORS = ['#00322d', '#2c6956', '#636037', '#004b44', '#ba1a1a', '#bfc9c6']
+const COLORS = ['#00322d', '#b2ad7d', '#2c6956', '#ba1a1a', '#7ebab0', '#d97706', '#4f46e5']
 const TOOLTIP_STYLE = {
   background: '#f8faf5',
   border: '2px solid #00322d',
@@ -114,10 +116,10 @@ export default function EngagementDashboard() {
   // Traffic quality donut data
   const qualityData = trafficQuality
     ? [
-        { name: 'Human', value: trafficQuality.human },
-        { name: 'Bot', value: trafficQuality.bot },
-        { name: 'Suspicious', value: trafficQuality.suspicious },
-      ].filter((d) => d.value > 0)
+      { name: 'Human', value: trafficQuality.human },
+      { name: 'Bot', value: trafficQuality.bot },
+      { name: 'Suspicious', value: trafficQuality.suspicious },
+    ].filter((d) => d.value > 0)
     : []
 
   const isAllLocalhostTraffic = geography.length > 0 && geography.every(g => g.name === 'Development' || g.name === 'Localhost')
@@ -212,7 +214,11 @@ export default function EngagementDashboard() {
                 <XAxis type="number" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
                 <YAxis type="category" dataKey="source" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} width={72} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(44,105,86,0.05)' }} />
-                <Bar dataKey="clicks" fill="#00322d" radius={[0, 0, 0, 0]} barSize={16} />
+                <Bar dataKey="clicks" radius={[0, 0, 0, 0]} barSize={16}>
+                  {referrers.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -260,7 +266,11 @@ export default function EngagementDashboard() {
                 <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={9} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
                 <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(44,105,86,0.05)' }} />
-                <Bar dataKey="value" name="Clicks" fill="#2c6956" radius={[0, 0, 0, 0]} barSize={22} />
+                <Bar dataKey="value" name="Clicks" radius={[0, 0, 0, 0]} barSize={22}>
+                  {geography.slice(0, 8).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -348,7 +358,13 @@ export default function EngagementDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      className="space-y-8"
+    >
       {/* ── Page Header ── */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div className="space-y-3">
@@ -361,7 +377,13 @@ export default function EngagementDashboard() {
       </div>
 
       {/* ── ROW 1: Traffic Quality + Top Links ── */}
-      <div className="grid gap-8 lg:grid-cols-[1fr_1.8fr]">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.5 }}
+        className="grid gap-8 lg:grid-cols-[1fr_1.8fr]"
+      >
         {renderTrafficQualityCard()}
 
         {/* FEATURE 1 – Top Performing Links */}
@@ -374,62 +396,113 @@ export default function EngagementDashboard() {
             </div>
           ) : topLinks.length === 0 ? (
             <EmptyState icon={TrendingUp} message="No links found. Create your first short link to see it here." />
-          ) : (
-            <div className="overflow-x-auto border-2 border-primary rounded-none bg-white">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead>
-                  <tr className="bg-surface-container-low border-b-2 border-primary">
-                    <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">#</th>
-                    <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">Short Link</th>
-                    <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">Original URL</th>
-                    <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary text-right">Clicks</th>
-                    <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-primary/10">
-                  {topLinks.map((link, idx) => {
-                    const isSelected = selectedUrlId === link.urlId
-                    return (
-                      <tr key={link.urlId} className={isSelected ? 'bg-secondary-container/20' : idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/30'}>
-                        <td className="p-3.5 font-space text-xs font-bold text-on-surface-variant">{idx + 1}</td>
-                        <td className="p-3.5">
-                          <a
-                            href={`${ENV.VITE_API_URL}/r/${link.shortCode}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-anton text-base text-secondary hover:underline"
-                          >
-                            /{link.shortCode}
-                          </a>
-                        </td>
-                        <td className="p-3.5 text-on-surface-variant font-medium truncate max-w-[220px]" title={link.originalUrl}>
-                          {link.originalUrl}
-                        </td>
-                        <td className="p-3.5 text-right font-anton text-xl text-primary">{link.clickCount.toLocaleString()}</td>
-                        <td className="p-3.5 text-right">
-                          <button
-                            onClick={() => setSelectedUrlId(link.urlId)}
-                            className={`rounded-none border-2 border-primary px-3 py-1 font-space text-[10px] font-bold uppercase transition-all duration-fast ${
-                              isSelected
-                                ? 'bg-primary text-white shadow-none translate-x-[1px] translate-y-[1px]'
-                                : 'bg-white text-primary shadow-brutal-xs hover:bg-surface-container-low active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
-                            }`}
-                          >
-                            {isSelected ? 'Selected' : 'Select'}
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                    ) : (
+            <div className="space-y-4">
+              {/* Desktop/Tablet Table */}
+              <div className="hidden md:block overflow-x-auto border-2 border-primary rounded-none bg-white">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-container-low border-b-2 border-primary">
+                      <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">#</th>
+                      <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">Short Link</th>
+                      <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">Original URL</th>
+                      <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary text-right">Clicks</th>
+                      <th className="p-3.5 font-space text-[11px] font-bold uppercase text-primary text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-primary/10">
+                    {topLinks.map((link, idx) => {
+                      const isSelected = selectedUrlId === link.urlId
+                      return (
+                        <tr key={link.urlId} className={isSelected ? 'bg-secondary-container/20' : idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/30'}>
+                          <td className="p-3.5 font-space text-xs font-bold text-on-surface-variant">{idx + 1}</td>
+                          <td className="p-3.5">
+                            <a
+                              href={`${ENV.VITE_API_URL}/r/${link.shortCode}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-anton text-base text-secondary hover:underline"
+                            >
+                              /{link.shortCode}
+                            </a>
+                          </td>
+                          <td className="p-3.5 text-on-surface-variant font-medium truncate max-w-[220px]" title={link.originalUrl}>
+                            {link.originalUrl}
+                          </td>
+                          <td className="p-3.5 text-right font-anton text-xl text-primary">{link.clickCount.toLocaleString()}</td>
+                          <td className="p-3.5 text-right">
+                            <button
+                              onClick={() => setSelectedUrlId(link.urlId)}
+                              className={`rounded-none border-2 border-primary px-3 py-1 font-space text-[10px] font-bold uppercase transition-all duration-fast ${isSelected
+                                  ? 'bg-primary text-white shadow-none translate-x-[1px] translate-y-[1px]'
+                                  : 'bg-white text-primary shadow-brutal-xs hover:bg-surface-container-low active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
+                                }`}
+                            >
+                              {isSelected ? 'Selected' : 'Select'}
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards Stack */}
+              <div className="block md:hidden space-y-4">
+                {topLinks.map((link, idx) => {
+                  const isSelected = selectedUrlId === link.urlId
+                  return (
+                    <Card key={link.urlId} className={clsx("p-4 space-y-3", isSelected ? "!bg-secondary-container/10 border-secondary" : "")} shadowSize="sm">
+                      <div className="flex items-center justify-between">
+                        <span className="code-label">Rank #{idx + 1}</span>
+                        <button
+                          onClick={() => setSelectedUrlId(link.urlId)}
+                          className={clsx(
+                            "rounded-none border-2 border-primary px-3 py-1 font-space text-[10px] font-bold uppercase transition-all duration-fast",
+                            isSelected
+                              ? "bg-primary text-white shadow-none translate-x-[1px] translate-y-[1px]"
+                              : "bg-white text-primary shadow-brutal-xs hover:bg-surface-container-low active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                          )}
+                        >
+                          {isSelected ? 'Selected' : 'Select'}
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-primary/10 pt-2.5">
+                        <a
+                          href={`${ENV.VITE_API_URL}/r/${link.shortCode}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-anton text-base text-secondary hover:underline"
+                        >
+                          /{link.shortCode}
+                        </a>
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Clicks</p>
+                          <p className="font-anton text-lg text-primary">{link.clickCount.toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1 border-t border-primary/10 pt-2.5">
+                        <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Original URL</p>
+                        <p className="text-xs text-on-surface-variant font-medium break-all select-all">{link.originalUrl}</p>
+                      </div>
+                    </Card>
+                  )
+                })}
+              </div>
             </div>
           )}
         </Card>
-      </div>
+      </motion.div>
 
       {/* ── ROW 2: Recent Activity Feed ── */}
-      <Card className="space-y-0" shadowSize="md">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        <Card className="space-y-0" shadowSize="md">
         <div className="flex items-center justify-between border-b-2 border-primary pb-3 mb-5">
           <div className="flex items-center gap-2">
             <Activity size={18} className="text-primary" />
@@ -455,44 +528,86 @@ export default function EngagementDashboard() {
         ) : activity.length === 0 ? (
           <EmptyState icon={Activity} message="No recent activity recorded across your links." />
         ) : (
-          <div className="overflow-x-auto border-2 border-primary rounded-none bg-white">
-            <table className="w-full text-sm text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-container-low border-b-2 border-primary">
-                  {['Link', 'Browser', 'Device', 'Country', 'Time'].map((h) => (
-                    <th key={h} className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">{h}</th>
+          <div className="space-y-4">
+            {/* Desktop/Tablet Table */}
+            <div className="hidden md:block overflow-x-auto border-2 border-primary rounded-none bg-white">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-container-low border-b-2 border-primary">
+                    {['Link', 'Browser', 'Device', 'Country', 'Time'].map((h) => (
+                      <th key={h} className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-primary/10">
+                  {activity.map((a, idx) => (
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/30'}>
+                      <td className="p-3.5 font-anton text-sm text-secondary">
+                        /{a.shortCode}
+                      </td>
+                      <td className="p-3.5 text-primary font-semibold capitalize">{a.browser}</td>
+                      <td className="p-3.5 text-on-surface-variant font-semibold capitalize">{a.device}</td>
+                      <td className="p-3.5 text-on-surface-variant font-semibold">
+                        <div className="flex items-center gap-1.5">
+                          <MapPin size={11} className="text-secondary flex-shrink-0" />
+                          {a.country}
+                        </div>
+                      </td>
+                      <td className="p-3.5 text-on-surface-variant font-space text-[11px]">
+                        {new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <br />
+                        <span className="text-[10px]">{new Date(a.timestamp).toLocaleDateString()}</span>
+                      </td>
+                    </tr>
                   ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-primary/10">
-                {activity.map((a, idx) => (
-                  <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/30'}>
-                    <td className="p-3.5 font-anton text-sm text-secondary">
-                      /{a.shortCode}
-                    </td>
-                    <td className="p-3.5 text-primary font-semibold capitalize">{a.browser}</td>
-                    <td className="p-3.5 text-on-surface-variant font-semibold capitalize">{a.device}</td>
-                    <td className="p-3.5 text-on-surface-variant font-semibold">
-                      <div className="flex items-center gap-1.5">
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards Stack */}
+            <div className="block md:hidden space-y-4">
+              {activity.map((a, idx) => (
+                <Card key={idx} className="p-4 space-y-2.5" shadowSize="sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-anton text-sm text-secondary">/{a.shortCode}</span>
+                    <span className="font-space text-[10px] text-on-surface-variant/80">
+                      {new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{' '}
+                      {new Date(a.timestamp).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs border-t border-primary/10 pt-2.5">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Browser</p>
+                      <p className="font-semibold text-primary capitalize mt-0.5">{a.browser}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Device</p>
+                      <p className="font-semibold text-on-surface-variant capitalize mt-0.5">{a.device}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Country</p>
+                      <p className="font-semibold text-on-surface-variant mt-0.5 truncate flex items-center gap-1">
                         <MapPin size={11} className="text-secondary flex-shrink-0" />
                         {a.country}
-                      </div>
-                    </td>
-                    <td className="p-3.5 text-on-surface-variant font-space text-[11px]">
-                      {new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      <br />
-                      <span className="text-[10px]">{new Date(a.timestamp).toLocaleDateString()}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           </div>
         )}
       </Card>
+      </motion.div>
 
       {/* ── Link analyzer details breakdown (scoped to active selection) ── */}
-      <div className="pt-6 border-t-2 border-primary/20 space-y-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.5 }}
+        className="pt-6 border-t-2 border-primary/20 space-y-6"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-xl font-anton uppercase text-primary tracking-wide">
@@ -526,7 +641,7 @@ export default function EngagementDashboard() {
           {renderReferrersCard()}
           {renderGeographyCard()}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

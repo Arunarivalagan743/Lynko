@@ -59,14 +59,15 @@ const ForgotPassword = () => {
           {...register('email')}
         />
         {apiError && <FieldMessage tone="error">{apiError}</FieldMessage>}
-        {sent && (
-          <FieldMessage>
-            If the account exists, a reset link has been issued.
+        {sent ? (
+          <FieldMessage tone="success">
+            If that email has an account, a reset link has been sent. Check your inbox.
           </FieldMessage>
+        ) : (
+          <Button type="submit" className="w-full" loading={isSubmitting}>
+            Send reset link
+          </Button>
         )}
-        <Button type="submit" className="w-full" loading={isSubmitting}>
-          Send reset link
-        </Button>
       </form>
     </AuthShell>
   )

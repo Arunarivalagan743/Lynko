@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { usePublicStats } from '../hooks/usePublicStats.js'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
@@ -34,6 +35,25 @@ import {
   Line,
   CartesianGrid
 } from 'recharts'
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08
+    }
+  }
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { type: 'spring', stiffness: 260, damping: 20 } 
+  }
+}
 
 export default function PublicStatsPage() {
   const { shortCode } = useParams()
@@ -70,7 +90,13 @@ export default function PublicStatsPage() {
   // Render search lookup card if no short code is specified in the route
   if (!shortCode) {
     return (
-      <div className="max-w-md mx-auto py-12 px-4 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+        className="max-w-md mx-auto py-12 px-4 space-y-6"
+      >
         <Card className="space-y-6 text-center" shadowSize="md">
           <div className="space-y-2">
             <div className="mx-auto h-12 w-12 rounded-none border-2 border-primary bg-surface-container-low flex items-center justify-center text-primary">
@@ -102,7 +128,7 @@ export default function PublicStatsPage() {
             </Button>
           </form>
         </Card>
-      </div>
+      </motion.div>
     )
   }
 
@@ -115,7 +141,13 @@ export default function PublicStatsPage() {
   const qualityScore = total > 0 ? Math.round((human / total) * 100) : 100
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      className="space-y-6"
+    >
       {/* Top Header Control Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -135,17 +167,17 @@ export default function PublicStatsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 max-w-md w-full sm:justify-end">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto sm:justify-end">
           <Button
             onClick={handleShareReport}
             variant="secondary"
-            className="h-10 flex items-center gap-2 px-4 whitespace-nowrap font-space text-xs font-bold uppercase"
+            className="w-full sm:w-auto h-10 flex items-center justify-center gap-2 px-4 whitespace-nowrap font-space text-xs font-bold uppercase"
           >
             <Share2 size={15} /> Share Report
           </Button>
 
           {/* Quick Search Header Bar */}
-          <form onSubmit={handleLookupSubmit} className="flex items-center gap-2 w-full max-w-[200px]">
+          <form onSubmit={handleLookupSubmit} className="flex items-center gap-2 w-full sm:max-w-[200px]">
             <input
               type="text"
               required
@@ -203,268 +235,301 @@ export default function PublicStatsPage() {
         /* Display loaded stats */
         <>
           {/* 1. Public Analytics Summary Cards Grid */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-50px" }}
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          >
             {/* Total Clicks */}
-            <Card className="flex flex-col justify-between p-4 space-y-2 bg-white" shadowSize="sm">
-              <div className="flex items-center justify-between text-primary">
-                <span className="font-space text-xs font-bold uppercase tracking-wider">Total Clicks</span>
-                <TrendingUp size={16} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-3xl font-anton text-primary">{stats.totalClicks}</h3>
-                <p className="font-space text-[9px] font-bold uppercase text-on-surface-variant">Accumulated redirections</p>
-              </div>
-            </Card>
+            <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+              <Card className="flex flex-col justify-between p-4 space-y-2 bg-white h-full" shadowSize="sm">
+                <div className="flex items-center justify-between text-primary">
+                  <span className="font-space text-xs font-bold uppercase tracking-wider">Total Clicks</span>
+                  <TrendingUp size={16} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-3xl font-anton text-primary">{stats.totalClicks}</h3>
+                  <p className="font-space text-[9px] font-bold uppercase text-on-surface-variant">Accumulated redirections</p>
+                </div>
+              </Card>
+            </motion.div>
 
             {/* Top Browser */}
-            <Card className="flex flex-col justify-between p-4 space-y-2 bg-secondary-container" shadowSize="sm">
-              <div className="flex items-center justify-between text-primary">
-                <span className="font-space text-xs font-bold uppercase tracking-wider">Top Browser</span>
-                <Monitor size={16} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-2xl font-anton text-primary truncate">{topBrowser}</h3>
-                <p className="font-space text-[9px] font-bold uppercase text-on-secondary-container">Most active client browser</p>
-              </div>
-            </Card>
+            <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+              <Card className="flex flex-col justify-between p-4 space-y-2 bg-secondary-container h-full" shadowSize="sm">
+                <div className="flex items-center justify-between text-primary">
+                  <span className="font-space text-xs font-bold uppercase tracking-wider">Top Browser</span>
+                  <Monitor size={16} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-anton text-primary truncate">{topBrowser}</h3>
+                  <p className="font-space text-[9px] font-bold uppercase text-on-secondary-container">Most active client browser</p>
+                </div>
+              </Card>
+            </motion.div>
 
             {/* Top Device */}
-            <Card className="flex flex-col justify-between p-4 space-y-2 bg-tertiary-container" shadowSize="sm">
-              <div className="flex items-center justify-between text-tertiary">
-                <span className="font-space text-xs font-bold uppercase tracking-wider text-tertiary">Top Device</span>
-                <Monitor size={16} className="text-tertiary" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-2xl font-anton text-tertiary truncate">{topDevice}</h3>
-                <p className="font-space text-[9px] font-bold uppercase text-on-tertiary-container">Primary visitor device</p>
-              </div>
-            </Card>
+            <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+              <Card className="flex flex-col justify-between p-4 space-y-2 bg-tertiary-container h-full" shadowSize="sm">
+                <div className="flex items-center justify-between text-tertiary">
+                  <span className="font-space text-xs font-bold uppercase tracking-wider text-tertiary">Top Device</span>
+                  <Monitor size={16} className="text-tertiary" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-anton text-tertiary truncate">{topDevice}</h3>
+                  <p className="font-space text-[9px] font-bold uppercase text-on-tertiary-container">Primary visitor device</p>
+                </div>
+              </Card>
+            </motion.div>
 
             {/* Traffic Quality */}
-            <Card className="flex flex-col justify-between p-4 space-y-2 bg-error-container" shadowSize="sm">
-              <div className="flex items-center justify-between text-error">
-                <span className="font-space text-xs font-bold uppercase tracking-wider text-error">Traffic Quality</span>
-                <Users size={16} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-3xl font-anton text-error">{qualityScore}%</h3>
-                <p className="font-space text-[9px] font-bold uppercase text-on-error-container">Verified human traffic ratio</p>
-              </div>
-            </Card>
-          </div>
+            <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+              <Card className="flex flex-col justify-between p-4 space-y-2 bg-error-container h-full" shadowSize="sm">
+                <div className="flex items-center justify-between text-error">
+                  <span className="font-space text-xs font-bold uppercase tracking-wider text-error">Traffic Quality</span>
+                  <Users size={16} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-3xl font-anton text-error">{qualityScore}%</h3>
+                  <p className="font-space text-[9px] font-bold uppercase text-on-error-container">Verified human traffic ratio</p>
+                </div>
+              </Card>
+            </motion.div>
+          </motion.div>
 
           {/* Traffic Quality Insights Summary */}
-          <Card className="space-y-4 !p-5 border-2 border-primary" shadowSize="sm">
-            <h2 className="text-sm font-anton uppercase tracking-wider text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
-              <Lightbulb size={16} className="text-primary animate-pulse" />
-              Performance Insights Report
-            </h2>
-            
-            {total > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-start gap-3 p-3 bg-surface-container-low border border-primary/10">
-                  <CheckCircle2 size={18} className="text-secondary mt-0.5 flex-shrink-0" />
-                  <div className="space-y-1">
-                    <h4 className="text-xs font-bold font-space uppercase text-primary">Traffic Verification</h4>
-                    <p className="text-xs text-on-surface-variant leading-relaxed">
-                      {qualityScore >= 80 
-                        ? `Exceptional traffic health! ${qualityScore}% of redirection visits are verified human interactions with minimal automated crawlers.` 
-                        : `Noticeable non-human traffic detected. ${100 - qualityScore}% of actions originate from spiders, crawlers, or headless scrapers.`}
-                    </p>
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.4 }}
+          >
+            <Card className="space-y-4 !p-5 border-2 border-primary" shadowSize="sm">
+              <h2 className="text-sm font-anton uppercase tracking-wider text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
+                <Lightbulb size={16} className="text-primary animate-pulse" />
+                Performance Insights Report
+              </h2>
+              
+              {total > 0 ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="flex items-start gap-3 p-3 bg-surface-container-low border border-primary/10">
+                    <CheckCircle2 size={18} className="text-secondary mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold font-space uppercase text-primary">Traffic Verification</h4>
+                      <p className="text-xs text-on-surface-variant leading-relaxed">
+                        {qualityScore >= 80 
+                          ? `Exceptional traffic health! ${qualityScore}% of redirection visits are verified human interactions with minimal automated crawlers.` 
+                          : `Noticeable non-human traffic detected. ${100 - qualityScore}% of actions originate from spiders, crawlers, or headless scrapers.`}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-start gap-3 p-3 bg-surface-container-low border border-primary/10">
-                  <Monitor size={18} className="text-secondary mt-0.5 flex-shrink-0" />
-                  <div className="space-y-1">
-                    <h4 className="text-xs font-bold font-space uppercase text-primary">Audience Platform</h4>
-                    <p className="text-xs text-on-surface-variant leading-relaxed">
-                      {topDevice !== 'None' 
-                        ? `Visitors predominantly engage using ${topDevice.toLowerCase()} clients. Tailoring target content to this layout is highly advised.` 
-                        : `Awaiting device profiling metrics to determine visitor viewport preferences.`}
-                    </p>
+                  <div className="flex items-start gap-3 p-3 bg-surface-container-low border border-primary/10">
+                    <Monitor size={18} className="text-secondary mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold font-space uppercase text-primary">Audience Platform</h4>
+                      <p className="text-xs text-on-surface-variant leading-relaxed">
+                        {topDevice !== 'None' 
+                          ? `Visitors predominantly engage using ${topDevice.toLowerCase()} clients. Tailoring target content to this layout is highly advised.` 
+                          : `Awaiting device profiling metrics to determine visitor viewport preferences.`}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <p className="font-space text-xs font-semibold text-on-surface-variant">
-                  No redirection traffic insights logged yet. Share your short link to gather statistics!
-                </p>
-              </div>
-            )}
-          </Card>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="font-space text-xs font-semibold text-on-surface-variant">
+                    No redirection traffic insights logged yet. Share your short link to gather statistics!
+                  </p>
+                </div>
+              )}
+            </Card>
+          </motion.div>
 
           {/* Breakdown Grids */}
-          <div className="grid gap-6 md:grid-cols-3">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-50px" }}
+            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          >
             {/* 2. Browser Breakdown */}
-            <Card className="space-y-4" shadowSize="sm">
-              <h2 className="text-sm font-anton uppercase tracking-wider text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
-                <Monitor size={16} className="text-primary" />
-                Browser Breakdown
-              </h2>
-              <div className="space-y-4">
-                {/* Browser Pie Chart */}
-                <div className="h-60 w-full flex items-center justify-center">
-                  {stats.browsers.some(b => b.value > 0) ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={stats.browsers.filter(b => b.value > 0)}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={70}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {stats.browsers.filter(b => b.value > 0).map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={['#00322d', '#2c6956', '#636037', '#ba1a1a', '#004b44', '#bfc9c6'][index % 6]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ background: '#f8faf5', borderRadius: '0px', border: '2px solid #00322d', fontSize: '11px', fontFamily: 'Space Mono', color: '#00322d' }}
-                        />
-                        <Legend verticalAlign="bottom" height={36} iconType="square" iconSize={8} wrapperStyle={{ fontSize: '10px', fontFamily: 'Space Mono' }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
-                      No browser clicks recorded
-                    </div>
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4 h-full" shadowSize="sm">
+                <h2 className="text-sm font-anton uppercase tracking-wider text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
+                  <Monitor size={16} className="text-primary" />
+                  Browser Breakdown
+                </h2>
+                <div className="space-y-4">
+                  {/* Browser Pie Chart */}
+                  <div className="h-60 w-full flex items-center justify-center">
+                    {stats.browsers.some(b => b.value > 0) ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={stats.browsers.filter(b => b.value > 0)}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={70}
+                            paddingAngle={3}
+                            dataKey="value"
+                          >
+                            {stats.browsers.filter(b => b.value > 0).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={['#00322d', '#2c6956', '#636037', '#ba1a1a', '#004b44', '#bfc9c6'][index % 6]} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ background: '#f8faf5', borderRadius: '0px', border: '2px solid #00322d', fontSize: '11px', fontFamily: 'Space Mono', color: '#00322d' }}
+                          />
+                          <Legend verticalAlign="bottom" height={36} iconType="square" iconSize={8} wrapperStyle={{ fontSize: '10px', fontFamily: 'Space Mono' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
+                        No browser clicks recorded
+                      </div>
+                    )}
+                  </div>
+
+                  {stats.browsers.length > 0 && stats.browsers.some(b => b.value > 0) && (
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary">
+                          <th className="py-1.5 font-bold">Browser</th>
+                          <th className="py-1.5 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {stats.browsers.map((b) => (
+                          <tr key={b.name} className="hover:bg-surface-container-low/40">
+                            <td className="py-1.5 font-bold text-primary">{b.name}</td>
+                            <td className="py-1.5 text-right font-bold text-primary">{b.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   )}
                 </div>
-
-                {stats.browsers.length > 0 && stats.browsers.some(b => b.value > 0) && (
-                  <table className="w-full text-xs text-left border-collapse">
-                    <thead>
-                      <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary">
-                        <th className="py-1.5 font-bold">Browser</th>
-                        <th className="py-1.5 font-bold text-right">Clicks</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-primary/20">
-                      {stats.browsers.map((b) => (
-                        <tr key={b.name} className="hover:bg-surface-container-low/40">
-                          <td className="py-1.5 font-bold text-primary">{b.name}</td>
-                          <td className="py-1.5 text-right font-bold text-primary">{b.value}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
 
             {/* 3. Device Breakdown */}
-            <Card className="space-y-4" shadowSize="sm">
-              <h2 className="text-sm font-anton uppercase tracking-wider text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
-                <Monitor size={16} className="text-primary" />
-                Device Breakdown
-              </h2>
-              <div className="space-y-4">
-                {/* Device Bar Chart */}
-                <div className="h-60 w-full flex items-center justify-center">
-                  {stats.devices.some(d => d.value > 0) ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={stats.devices} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d8dbd6" />
-                        <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
-                        <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
-                        <Tooltip 
-                          cursor={{ fill: 'rgba(44, 105, 86, 0.05)' }}
-                          contentStyle={{ background: '#f8faf5', borderRadius: '0px', border: '2px solid #00322d', fontSize: '11px', fontFamily: 'Space Mono', color: '#00322d' }}
-                        />
-                        <Bar dataKey="value" fill="#00322d" radius={[0, 0, 0, 0]} barSize={28} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
-                      No device clicks recorded
-                    </div>
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4 h-full" shadowSize="sm">
+                <h2 className="text-sm font-anton uppercase tracking-wider text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
+                  <Monitor size={16} className="text-primary" />
+                  Device Breakdown
+                </h2>
+                <div className="space-y-4">
+                  {/* Device Bar Chart */}
+                  <div className="h-60 w-full flex items-center justify-center">
+                    {stats.devices.some(d => d.value > 0) ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={stats.devices} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d8dbd6" />
+                          <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                          <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                          <Tooltip 
+                            cursor={{ fill: 'rgba(44, 105, 86, 0.05)' }}
+                            contentStyle={{ background: '#f8faf5', borderRadius: '0px', border: '2px solid #00322d', fontSize: '11px', fontFamily: 'Space Mono', color: '#00322d' }}
+                          />
+                          <Bar dataKey="value" fill="#00322d" radius={[0, 0, 0, 0]} barSize={28} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
+                        No device clicks recorded
+                      </div>
+                    )}
+                  </div>
+
+                  {stats.devices.length > 0 && stats.devices.some(d => d.value > 0) && (
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary">
+                          <th className="py-1.5 font-bold">Device</th>
+                          <th className="py-1.5 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {stats.devices.map((d) => (
+                          <tr key={d.name} className="hover:bg-surface-container-low/40">
+                            <td className="py-1.5 font-bold text-primary">{d.name}</td>
+                            <td className="py-1.5 text-right font-bold text-primary">{d.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   )}
                 </div>
-
-                {stats.devices.length > 0 && stats.devices.some(d => d.value > 0) && (
-                  <table className="w-full text-xs text-left border-collapse">
-                    <thead>
-                      <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary">
-                        <th className="py-1.5 font-bold">Device</th>
-                        <th className="py-1.5 font-bold text-right">Clicks</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-primary/20">
-                      {stats.devices.map((d) => (
-                        <tr key={d.name} className="hover:bg-surface-container-low/40">
-                          <td className="py-1.5 font-bold text-primary">{d.name}</td>
-                          <td className="py-1.5 text-right font-bold text-primary">{d.value}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
 
             {/* 4. Daily Trends */}
-            <Card className="space-y-4" shadowSize="sm">
-              <h2 className="text-sm font-anton uppercase tracking-wider text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
-                <TrendingUp size={16} className="text-primary" />
-                Daily Trends Log
-              </h2>
-              <div className="space-y-4">
-                {/* Daily Trends Line Chart */}
-                <div className="h-60 w-full flex items-center justify-center">
-                  {stats.trends.some(t => t.clicks > 0) ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={stats.trends} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d8dbd6" />
-                        <XAxis dataKey="formattedDate" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
-                        <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
-                        <Tooltip 
-                          contentStyle={{ background: '#f8faf5', borderRadius: '0px', border: '2px solid #00322d', fontSize: '11px', fontFamily: 'Space Mono', color: '#00322d' }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="clicks" 
-                          stroke="#00322d" 
-                          strokeWidth={2} 
-                          dot={{ stroke: '#00322d', strokeWidth: 1, r: 2.5, fill: 'white' }}
-                          activeDot={{ r: 4 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
-                      No click history logged
-                    </div>
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4 h-full" shadowSize="sm">
+                <h2 className="text-sm font-anton uppercase tracking-wider text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
+                  <TrendingUp size={16} className="text-primary" />
+                  Daily Trends Log
+                </h2>
+                <div className="space-y-4">
+                  {/* Daily Trends Line Chart */}
+                  <div className="h-60 w-full flex items-center justify-center">
+                    {stats.trends.some(t => t.clicks > 0) ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={stats.trends} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d8dbd6" />
+                          <XAxis dataKey="formattedDate" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                          <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                          <Tooltip 
+                            contentStyle={{ background: '#f8faf5', borderRadius: '0px', border: '2px solid #00322d', fontSize: '11px', fontFamily: 'Space Mono', color: '#00322d' }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="clicks" 
+                            stroke="#00322d" 
+                            strokeWidth={2} 
+                            dot={{ stroke: '#00322d', strokeWidth: 1, r: 2.5, fill: 'white' }}
+                            activeDot={{ r: 4 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
+                        No click history logged
+                      </div>
+                    )}
+                  </div>
+
+                  {stats.trends.length > 0 && stats.trends.some(t => t.clicks > 0) && (
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary">
+                          <th className="py-1.5 font-bold">Date</th>
+                          <th className="py-1.5 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20 max-h-[150px] overflow-y-auto">
+                        {stats.trends.map((t) => (
+                          <tr key={t.date} className="hover:bg-surface-container-low/40">
+                            <td className="py-1.5 font-bold text-primary">{t.formattedDate || t.date}</td>
+                            <td className="py-1.5 text-right font-bold text-primary">{t.clicks}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   )}
                 </div>
-
-                {stats.trends.length > 0 && stats.trends.some(t => t.clicks > 0) && (
-                  <table className="w-full text-xs text-left border-collapse">
-                    <thead>
-                      <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary">
-                        <th className="py-1.5 font-bold">Date</th>
-                        <th className="py-1.5 font-bold text-right">Clicks</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-primary/20 max-h-[150px] overflow-y-auto">
-                      {stats.trends.map((t) => (
-                        <tr key={t.date} className="hover:bg-surface-container-low/40">
-                          <td className="py-1.5 font-bold text-primary">{t.formattedDate || t.date}</td>
-                          <td className="py-1.5 text-right font-bold text-primary">{t.clicks}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </Card>
-          </div>
+              </Card>
+            </motion.div>
+          </motion.div>
         </>
       ) : null}
-    </div>
+    </motion.div>
   )
 }
 export { PublicStatsPage }

@@ -39,7 +39,7 @@ const ConfirmDialog = ({
       />
       <div className="relative z-10 w-full max-w-lg">
         <Card className="space-y-4 p-0" shadowSize="lg">
-          <div className="flex items-start justify-between border-b-2 border-primary px-6 py-5">
+          <div className="flex items-start justify-between border-b border-primary/10 px-6 py-5">
             <div>
               <p className="label-overline">Confirm</p>
               <h2 className="heading-section text-primary">{title}</h2>
@@ -47,7 +47,7 @@ const ConfirmDialog = ({
             <button
               type="button"
               onClick={loading ? undefined : onCancel}
-              className="rounded-none border-2 border-primary bg-white p-2 text-primary shadow-brutal-xs hover:bg-surface-container-low active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all duration-fast"
+              className="rounded-md border border-primary/20 bg-white p-2 text-primary hover:bg-surface-container-low active:scale-95 transition-all duration-fast"
               aria-label="Close dialog"
             >
               <X size={16} />
@@ -59,7 +59,7 @@ const ConfirmDialog = ({
               <p className="text-sm font-medium text-on-surface-variant">{description}</p>
             )}
             {details.length > 0 && (
-              <div className="border-2 border-primary/20 bg-surface-container-low px-4 py-3 text-xs font-space uppercase font-bold text-primary">
+              <div className="border border-primary/20 bg-surface-container-low px-4 py-3 text-xs rounded-md text-primary font-medium">
                 {details.map((item) => (
                   <div key={item}>{item}</div>
                 ))}
@@ -67,7 +67,7 @@ const ConfirmDialog = ({
             )}
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t-2 border-primary px-6 py-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-primary/10 px-6 py-5 sm:flex-row sm:justify-end">
             <Button
               variant="secondary"
               onClick={onCancel}
@@ -77,14 +77,10 @@ const ConfirmDialog = ({
               {cancelLabel}
             </Button>
             <Button
-              variant={confirmTone === 'danger' ? 'secondary' : 'primary'}
+              variant={confirmTone === 'danger' ? 'danger' : 'primary'}
               onClick={onConfirm}
               loading={loading}
-              className={clsx(
-                'sm:min-w-[160px]',
-                confirmTone === 'danger' &&
-                'border-2 border-error bg-error text-white shadow-brutal hover:bg-error/80 active:translate-x-[4px] active:translate-y-[4px] active:shadow-none',
-              )}
+              className="sm:min-w-[160px]"
             >
               {confirmLabel}
             </Button>

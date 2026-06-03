@@ -1,31 +1,76 @@
 import { forwardRef } from 'react'
 import clsx from 'clsx'
+import { AlertCircle, CheckCircle2, Info } from 'lucide-react'
 
 const Input = forwardRef(
   (
-    { label, hint, error, className, inputClassName, type = 'text', ...props },
+    {
+      label,
+      hint,
+      error,
+      success,
+      required,
+      className,
+      inputClassName,
+      type = 'text',
+      ...props
+    },
     ref,
   ) => {
+    const hasError = Boolean(error)
+    const hasSuccess = Boolean(success) && !hasError
+
     return (
-      <label className="flex w-full flex-col gap-2 text-sm">
+      <div className={clsx('flex w-full flex-col gap-1.5', className)}>
         {label && (
-          <span className="font-space text-[13px] font-bold uppercase tracking-wider text-primary">
+          <label className="flex items-center gap-1 text-sm font-semibold text-primary">
             {label}
-          </span>
+            {required && <span className="text-error ml-0.5">*</span>}
+          </label>
         )}
         <input
           ref={ref}
           type={type}
           className={clsx(
-            'h-12 rounded-none border-2 border-primary bg-white px-4 font-sans text-sm text-on-surface placeholder:text-on-surface-variant/45 transition-colors focus:border-secondary focus:outline-none focus:ring-0',
-            error && 'border-error focus:border-error',
+            'h-11 w-full rounded-md border-2 bg-white px-4 text-sm text-on-surface placeholder:text-on-surface-variant/40 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1',
+            hasError
+              ? 'border-error focus:border-error focus:ring-error/20'
+              : hasSuccess
+                ? 'border-secondary focus:border-secondary focus:ring-secondary/20'
+                : 'border-primary/50 focus:border-primary focus:ring-primary/15',
             inputClassName,
           )}
+          aria-invalid={hasError}
           {...props}
         />
-        {hint && !error && <span className="font-space text-[11px] text-text-muted">{hint}</span>}
-        {error && <span className="font-space text-[11px] text-error font-semibold">{error}</span>}
-      </label>
+
+        {/* Hint */}
+        {hint && !hasError && !hasSuccess && (
+          <span className="flex items-center gap-1.5 text-xs text-on-surface-variant">
+            <Info size={11} className="shrink-0 opacity-60" />
+            {hint}
+          </span>
+        )}
+
+        {/* Error */}
+        {hasError && (
+          <span
+            role="alert"
+            className="flex items-start gap-1.5 animate-[fadeSlideIn_0.15s_ease-out] text-xs font-medium text-error"
+          >
+            <AlertCircle size={12} className="mt-0.5 shrink-0" />
+            {error}
+          </span>
+        )}
+
+        {/* Success */}
+        {hasSuccess && (
+          <span className="flex items-start gap-1.5 animate-[fadeSlideIn_0.15s_ease-out] text-xs font-medium text-secondary">
+            <CheckCircle2 size={12} className="mt-0.5 shrink-0" />
+            {success}
+          </span>
+        )}
+      </div>
     )
   },
 )

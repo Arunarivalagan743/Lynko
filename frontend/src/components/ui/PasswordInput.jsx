@@ -1,41 +1,75 @@
 import { forwardRef, useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, CheckCircle2, Info } from 'lucide-react'
 import clsx from 'clsx'
 
 const PasswordInput = forwardRef(
-  ({ label, hint, error, className, inputClassName, ...props }, ref) => {
+  ({ label, hint, error, success, required, className, inputClassName, ...props }, ref) => {
     const [visible, setVisible] = useState(false)
 
+    const hasError = Boolean(error)
+    const hasSuccess = Boolean(success) && !hasError
+
     return (
-      <label className="flex w-full flex-col gap-1.5 text-sm className">
+      <div className={clsx('flex w-full flex-col gap-1.5', className)}>
         {label && (
-          <span className="font-space text-xs font-bold uppercase tracking-wider text-primary">
+          <label className="flex items-center gap-1 text-sm font-semibold text-primary">
             {label}
-          </span>
+            {required && <span className="text-error ml-0.5">*</span>}
+          </label>
         )}
         <div className="relative">
           <input
             ref={ref}
             type={visible ? 'text' : 'password'}
             className={clsx(
-              'h-11 w-full rounded-none border-2 border-primary bg-white px-3 pr-11 font-sans text-sm text-on-background placeholder:text-on-surface-variant/50 transition-colors focus:border-secondary focus:outline-none focus:ring-0',
-              error && 'border-error focus:border-error',
+              'h-11 w-full rounded-md border-2 bg-white px-4 pr-11 text-sm text-on-surface placeholder:text-on-surface-variant/40 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1',
+              hasError
+                ? 'border-error focus:border-error focus:ring-error/20'
+                : hasSuccess
+                  ? 'border-secondary focus:border-secondary focus:ring-secondary/20'
+                  : 'border-primary/50 focus:border-primary focus:ring-primary/15',
               inputClassName,
             )}
+            aria-invalid={hasError}
             {...props}
           />
           <button
             type="button"
             onClick={() => setVisible((prev) => !prev)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-on-surface-variant transition-colors hover:text-primary"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-on-surface-variant transition-colors hover:text-primary"
             aria-label={visible ? 'Hide password' : 'Show password'}
           >
             {visible ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
-        {hint && !error && <span className="font-space text-[10px] text-text-muted">{hint}</span>}
-        {error && <span className="font-space text-[10px] text-error font-semibold">{error}</span>}
-      </label>
+
+        {/* Hint */}
+        {hint && !hasError && !hasSuccess && (
+          <span className="flex items-center gap-1.5 text-xs text-on-surface-variant">
+            <Info size={11} className="shrink-0 opacity-60" />
+            {hint}
+          </span>
+        )}
+
+        {/* Error */}
+        {hasError && (
+          <span
+            role="alert"
+            className="flex items-start gap-1.5 animate-[fadeSlideIn_0.15s_ease-out] text-xs font-medium text-error"
+          >
+            <AlertCircle size={12} className="mt-0.5 shrink-0" />
+            {error}
+          </span>
+        )}
+
+        {/* Success */}
+        {hasSuccess && (
+          <span className="flex items-start gap-1.5 animate-[fadeSlideIn_0.15s_ease-out] text-xs font-medium text-secondary">
+            <CheckCircle2 size={12} className="mt-0.5 shrink-0" />
+            {success}
+          </span>
+        )}
+      </div>
     )
   },
 )

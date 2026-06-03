@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   ArrowRight,
   BarChart3,
@@ -15,6 +16,7 @@ import {
   TrendingUp,
   Users,
   Zap,
+  AlertCircle,
 } from 'lucide-react'
 import Button from '../components/ui/Button.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -22,6 +24,34 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useUrls } from '../hooks/useUrls.js'
 import toast from 'react-hot-toast'
 import { ENV } from '../constants/env.js'
+
+const fadeUpVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { duration: 0.6, ease: 'easeOut' } 
+  }
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08
+    }
+  }
+}
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { duration: 0.5, ease: 'easeOut' } 
+  }
+}
 
 const features = [
   {
@@ -65,11 +95,34 @@ const Home = () => {
   const [longUrl, setLongUrl] = useState('')
   const [customAlias, setCustomAlias] = useState('')
   const [createdLink, setCreatedLink] = useState(null)
+  const [urlError, setUrlError] = useState('')
+
+  const validateUrl = (raw) => {
+    if (!raw.trim()) return 'Please paste a URL to shorten'
+    try {
+      const parsed = new URL(raw.trim())
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        return `"${parsed.protocol}//" is not allowed — use http:// or https://`
+      }
+      if (!parsed.hostname.includes('.')) {
+        return 'URL must include a valid domain (e.g. https://example.com)'
+      }
+    } catch {
+      return 'Invalid URL — include the full address (e.g. https://example.com)'
+    }
+    return ''
+  }
 
   const handleShorten = async (e) => {
     e.preventDefault()
 
-    if (!longUrl.trim()) return
+    const trimmedUrl = longUrl.trim()
+    const validationError = validateUrl(trimmedUrl)
+    if (validationError) {
+      setUrlError(validationError)
+      return
+    }
+    setUrlError('')
 
     // If not authenticated, redirect to login
     if (!isAuthenticated) {
@@ -79,7 +132,7 @@ const Home = () => {
 
     try {
       const payload = {
-        originalUrl: longUrl.trim(),
+        originalUrl: trimmedUrl,
         customAlias: customAlias.trim() || undefined,
       }
       const newUrl = await addUrl(payload)
@@ -87,6 +140,7 @@ const Home = () => {
         setCreatedLink(newUrl)
         setLongUrl('')
         setCustomAlias('')
+        setUrlError('')
       }
     } catch (_err) {
       // Errors handled in hook
@@ -105,17 +159,25 @@ const Home = () => {
     <div className="bg-background min-h-screen">
 
       {/* ── Hero Section ── */}
-      <section className="border-b-2 border-primary bg-white">
+      <motion.section 
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+        className="border-b-2 border-primary bg-white"
+      >
         <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-8 px-6 py-20 text-center">
           {/* Trust badge */}
-          <span className="inline-flex items-center gap-2 rounded-none border-2 border-primary bg-secondary-container px-3 py-1.5 font-space text-xs font-bold uppercase tracking-wider text-primary select-none">
+          <motion.span 
+            variants={staggerItem}
+            className="inline-flex items-center gap-2 rounded-none border-2 border-primary bg-secondary-container px-3 py-1.5 font-space text-xs font-bold uppercase tracking-wider text-primary select-none"
+          >
             <span className="h-2 w-2 rounded-none bg-secondary" />
             Fast, reliable link management for modern teams
-          </span>
+          </motion.span>
 
           {/* Hero headline */}
-          <div className="space-y-4 max-w-3xl">
-            <h1 className="text-5xl font-anton uppercase tracking-wider text-primary leading-tight md:text-6xl lg:text-7xl">
+          <motion.div variants={staggerItem} className="space-y-4 max-w-3xl">
+            <h1 className="text-4xl sm:text-5xl font-anton uppercase tracking-wider text-primary leading-tight md:text-6xl lg:text-7xl">
               Shorten Your Links,<br />
               <span className="text-secondary">Grow Your Power.</span>
             </h1>
@@ -123,22 +185,23 @@ const Home = () => {
               The URL shortener built for speed, transparency, and quirky high-performance tracking.
               Turn long messy strings into elegant, powerful links.
             </p>
-          </div>
+          </motion.div>
 
           {/* ── Bitly-style URL Shortener Widget ── */}
-          <div className="w-full max-w-2xl mt-2">
+          <motion.div variants={staggerItem} className="w-full max-w-2xl mt-2">
             <Card className="space-y-5 !p-7" shadowSize="lg" dogEar>
               <form onSubmit={handleShorten} className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
                     <Link2 size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary/40 pointer-events-none" />
                     <input
-                      type="url"
+                      type="text"
                       placeholder="Paste your long URL here..."
                       value={longUrl}
-                      onChange={(e) => setLongUrl(e.target.value)}
-                      required
-                      className="w-full h-12 rounded-none border-2 border-primary bg-white pl-11 pr-4 font-sans text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:border-secondary focus:outline-none transition-colors"
+                      onChange={(e) => { setLongUrl(e.target.value); if (urlError) setUrlError('') }}
+                      className={`w-full h-12 rounded-none border-2 bg-white pl-11 pr-4 font-sans text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none transition-colors ${
+                        urlError ? 'border-error focus:border-error' : 'border-primary focus:border-secondary'
+                      }`}
                     />
                   </div>
                   <input
@@ -151,6 +214,17 @@ const Home = () => {
                   />
                 </div>
 
+                {/* Inline URL validation error */}
+                {urlError && (
+                  <div
+                    role="alert"
+                    className="flex items-start gap-2 animate-[fadeSlideIn_0.15s_ease-out] border-2 border-error bg-error/5 px-4 py-2.5"
+                  >
+                    <AlertCircle size={14} className="mt-0.5 shrink-0 text-error" />
+                    <p className="font-space text-[12px] font-semibold leading-snug text-error">{urlError}</p>
+                  </div>
+                )}
+
                 <Button
                   type="submit"
                   size="xl"
@@ -158,7 +232,7 @@ const Home = () => {
                   className="w-full"
                 >
                   <Scissors size={18} />
-                  {isAuthenticated ? 'Shorten Now' : 'Sign In to Shorten'}
+                  {createLoading ? 'Shortening…' : isAuthenticated ? 'Shorten Now' : 'Sign In to Shorten'}
                 </Button>
               </form>
 
@@ -229,10 +303,30 @@ const Home = () => {
                 to start shortening.
               </p>
             )}
-          </div>
+          </motion.div>
+
+          {/* Dashboard Preview Image */}
+          <motion.div 
+            variants={staggerItem}
+            whileHover={{ scale: 1.01 }}
+            className="w-full max-w-4xl mt-6 border-2 border-primary rounded-xl overflow-hidden shadow-brutal bg-surface-container-low p-2"
+          >
+            <img
+              src="/src/assets/dashboard_preview.png"
+              alt="Lynko Premium Dashboard Preview"
+              className="w-full h-auto rounded-lg border border-primary/10"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentNode.style.display = 'none';
+              }}
+            />
+          </motion.div>
 
           {/* Trust chips */}
-          <div className="flex flex-wrap items-center justify-center gap-6 font-space text-xs font-bold uppercase text-primary pt-2">
+          <motion.div 
+            variants={staggerItem}
+            className="flex flex-wrap items-center justify-center gap-6 font-space text-xs font-bold uppercase text-primary pt-6"
+          >
             <div className="flex items-center gap-2">
               <ShieldCheck size={16} className="text-secondary" />
               SOC 2 aligned security
@@ -245,14 +339,20 @@ const Home = () => {
               <Check size={16} className="text-secondary" />
               GDPR compliant
             </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── Features Grid ── */}
       <section className="border-b-2 border-primary bg-white" id="features">
-        <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
-          <div className="flex flex-col gap-3 text-center max-w-xl mx-auto mb-12">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-20px" }}
+          variants={staggerContainer}
+          className="mx-auto w-full max-w-[1200px] px-6 py-16"
+        >
+          <motion.div variants={staggerItem} className="flex flex-col gap-3 text-center max-w-xl mx-auto mb-12">
             <p className="label-overline">Features</p>
             <h2 className="text-3xl font-anton uppercase text-primary leading-tight">
               Quirky Features, Serious Results.
@@ -260,26 +360,37 @@ const Home = () => {
             <p className="text-sm font-medium text-on-surface-variant">
               Everything you need to launch branded links faster and measure what matters.
             </p>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          </motion.div>
+          <motion.div 
+            variants={staggerContainer}
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {features.map((feature) => (
-              <Card key={feature.title} className="space-y-4" shadowSize="sm" hover>
-                <div className="flex h-11 w-11 items-center justify-center rounded-none border-2 border-primary bg-secondary-container text-primary">
-                  <feature.icon size={20} />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-base font-anton uppercase text-primary tracking-wide">{feature.title}</h3>
-                  <p className="text-sm font-medium text-on-surface-variant leading-relaxed">{feature.description}</p>
-                </div>
-              </Card>
+              <motion.div key={feature.title} variants={staggerItem}>
+                <Card className="space-y-4 h-full" shadowSize="sm" hover>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-none border-2 border-primary bg-secondary-container text-primary">
+                    <feature.icon size={20} />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-base font-anton uppercase text-primary tracking-wide">{feature.title}</h3>
+                    <p className="text-sm font-medium text-on-surface-variant leading-relaxed">{feature.description}</p>
+                  </div>
+                </Card>
+              </motion.div>
             ))}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* ── Why Choose Lynko (3-up) ── */}
       <section className="border-b-2 border-primary bg-surface-container-low">
-        <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-20px" }}
+          variants={staggerContainer}
+          className="mx-auto w-full max-w-[1200px] px-6 py-16"
+        >
           <div className="grid gap-6 md:grid-cols-3">
             {[
               {
@@ -298,23 +409,31 @@ const Home = () => {
                 description: 'Bulk CSV import, public stats pages, and structured analytics exports.',
               },
             ].map((item) => (
-              <Card key={item.title} className="space-y-4 !bg-white" shadowSize="sm" hover>
-                <div className="flex h-11 w-11 items-center justify-center rounded-none border-2 border-primary bg-surface-container-low">
-                  <item.icon size={20} className="text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-anton uppercase text-primary">{item.title}</h3>
-                  <p className="text-sm font-medium text-on-surface-variant leading-relaxed">{item.description}</p>
-                </div>
-              </Card>
+              <motion.div key={item.title} variants={staggerItem}>
+                <Card className="space-y-4 !bg-white h-full" shadowSize="sm" hover>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-none border-2 border-primary bg-surface-container-low">
+                    <item.icon size={20} className="text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-anton uppercase text-primary">{item.title}</h3>
+                    <p className="text-sm font-medium text-on-surface-variant leading-relaxed">{item.description}</p>
+                  </div>
+                </Card>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── Bottom CTA ── */}
       <section className="bg-white">
-        <div className="mx-auto w-full max-w-[1200px] px-6 py-16">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-20px" }}
+          variants={fadeUpVariants}
+          className="mx-auto w-full max-w-[1200px] px-6 py-16"
+        >
           <div className="rounded-none border-2 border-primary bg-primary p-10 text-center shadow-brutal">
             <h2 className="text-3xl font-anton uppercase text-white leading-tight">
               Ready to launch links that perform?
@@ -344,12 +463,18 @@ const Home = () => {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── Footer ── */}
       <footer className="border-t-2 border-primary bg-white">
-        <div className="mx-auto flex w-full max-w-[1200px] flex-col sm:flex-row items-center justify-between gap-4 px-6 py-8">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeUpVariants}
+          className="mx-auto flex w-full max-w-[1200px] flex-col sm:flex-row items-center justify-between gap-4 px-6 py-8"
+        >
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-none border-2 border-primary bg-white shadow-brutal-sm">
               <div className="h-3.5 w-3.5 rounded-none bg-primary" />
@@ -365,7 +490,7 @@ const Home = () => {
               {isAuthenticated ? 'Dashboard' : 'Login'}
             </Link>
           </div>
-        </div>
+        </motion.div>
       </footer>
     </div>
   )

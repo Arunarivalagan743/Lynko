@@ -49,14 +49,16 @@ export default {
       },
       fontFamily: {
         anton: ['Anton', 'sans-serif'],
-        hanken: ['"Hanken Grotesk"', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
         space: ['"Space Mono"', 'monospace'],
-        sans: ['"Hanken Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['"Space Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       fontSize: {
-        'page': ['2.25rem', { lineHeight: '1.1', letterSpacing: '0.02em' }],   // 36px — page titles
-        'section': ['1.25rem', { lineHeight: '1.3', letterSpacing: '0.04em' }], // 20px — section headers
+        'page':    ['2.25rem', { lineHeight: '1.1',  letterSpacing: '0.02em' }],   // 36px — page titles
+        'section': ['1.25rem', { lineHeight: '1.3',  letterSpacing: '0.04em' }],   // 20px — section headers
+        'kpi':     ['3.5rem',  { lineHeight: '1.0',  letterSpacing: '-0.01em' }],  // 56px — KPI numbers
+        'display': ['4.5rem',  { lineHeight: '0.95', letterSpacing: '-0.02em' }],  // 72px — hero display
       },
       boxShadow: {
         'brutal': '4px 4px 0px 0px #00322d',
@@ -69,12 +71,13 @@ export default {
         'header': '0 1px 0 0 rgba(0, 50, 45, 0.08)',
       },
       borderRadius: {
-        sm: '0px',
-        md: '0px',
-        lg: '0px',
-        card: '0px',
-        modal: '0px',
-        none: '0px',
+        none:  '0px',      // explicit sharp — badges, code chips, status tags
+        sm:    '4px',      // inputs, small elements
+        md:    '8px',      // buttons, fields
+        lg:    '12px',     // cards, panels
+        card:  '12px',     // semantic card alias
+        pill:  '9999px',   // rounded pills
+        DEFAULT: '8px',
       },
       transitionDuration: {
         'fast': '100ms',

@@ -2,12 +2,42 @@ import { z } from 'zod'
 
 const SHORT_CODE_REGEX = /^[a-zA-Z0-9_-]{4,32}$/
 
+/**
+ * Validates that a string is a proper http:// or https:// URL.
+ */
+const httpUrlSchema = z
+  .string()
+  .min(1, 'URL is required')
+  .refine(
+    (val) => {
+      try {
+        const parsed = new URL(val)
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+      } catch {
+        return false
+      }
+    },
+    { message: 'Please enter a valid URL starting with http:// or https://' }
+  )
+  .refine(
+    (val) => {
+      try {
+        const parsed = new URL(val)
+        // Must have a real hostname (not just e.g. "http://")
+        return parsed.hostname.length > 0 && parsed.hostname.includes('.')
+      } catch {
+        return false
+      }
+    },
+    { message: 'URL must include a valid domain (e.g. example.com)' }
+  )
+  .refine(
+    (val) => val.length <= 2048,
+    { message: 'URL exceeds maximum length of 2048 characters' }
+  )
+
 export const createUrlSchema = z.object({
-  originalUrl: z
-    .string()
-    .min(1, 'Original URL is required')
-    .url('Please enter a valid URL')
-    .max(2048, 'URL exceeds max length of 2048 characters'),
+  originalUrl: httpUrlSchema,
   customAlias: z
     .string()
     .trim()
@@ -32,10 +62,7 @@ export const createUrlSchema = z.object({
 
 export const updateUrlSchema = z
   .object({
-    originalUrl: z
-      .string()
-      .url('Please enter a valid URL')
-      .max(2048, 'URL exceeds max length of 2048 characters')
+    originalUrl: httpUrlSchema
       .optional()
       .or(z.literal('')),
     expiresAt: z

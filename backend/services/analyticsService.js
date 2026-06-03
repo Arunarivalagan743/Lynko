@@ -115,7 +115,7 @@ const getRecentVisits = async (ownerId, urlId, options = {}) => {
     .sort({ timestamp: -1 })
     .skip(skip)
     .limit(limit)
-    .select("timestamp browser device country referrer clickQuality ipAddress")
+    .select("timestamp browser device country city region referrer clickQuality ipAddress latitude longitude")
     .lean();
 };
 
@@ -214,6 +214,41 @@ const getDailyTrends = async (ownerId, urlId, options = {}) => {
   }));
 };
 
+const getGeoPins = async (ownerId, urlId, options = {}) => {
+  const url = await assertUrlAccess(ownerId, urlId);
+  const match = {
+    urlId: url._id,
+    latitude: { $ne: null },
+    longitude: { $ne: null },
+    ...buildTimestampMatch(options),
+  };
+
+  // Aggregate to count clicks per unique lat/lng location
+  const rows = await Visit.aggregate([
+    { $match: match },
+    {
+      $group: {
+        _id: { lat: "$latitude", lng: "$longitude" },
+        country: { $first: "$country" },
+        city: { $first: "$city" },
+        region: { $first: "$region" },
+        clicks: { $sum: 1 },
+      },
+    },
+    { $sort: { clicks: -1 } },
+    { $limit: 200 },
+  ]);
+
+  return rows.map((row) => ({
+    lat: row._id.lat,
+    lng: row._id.lng,
+    country: row.country || "Unknown",
+    city: row.city || null,
+    region: row.region || null,
+    clicks: row.clicks,
+  }));
+};
+
 module.exports = {
   getAnalyticsSummary,
   getRecentVisits,
@@ -221,4 +256,5 @@ module.exports = {
   getDeviceAnalytics,
   getCountryAnalytics,
   getDailyTrends,
+  getGeoPins,
 };

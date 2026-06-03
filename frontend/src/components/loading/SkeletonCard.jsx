@@ -1,11 +1,11 @@
 import React from 'react'
 
 export default function SkeletonCard({ variant = 'dashboard', className = '' }) {
-  const shimmerClass = 'animate-pulse bg-primary/10 rounded-none'
+  const shimmerClass = 'animate-pulse bg-primary/10 rounded-md'
 
   if (variant === 'analytics') {
     return (
-      <div className={`rounded-none border-2 border-primary bg-white p-4 space-y-3 shadow-brutal-sm ${className}`}>
+      <div className={`rounded-card border border-primary/15 bg-white p-6 space-y-3 shadow-sm ${className}`}>
         <div className={`h-4 w-24 ${shimmerClass}`} />
         <div className={`h-8 w-16 ${shimmerClass}`} />
         <div className={`h-3 w-32 ${shimmerClass}`} />
@@ -15,7 +15,7 @@ export default function SkeletonCard({ variant = 'dashboard', className = '' }) 
 
   if (variant === 'qr') {
     return (
-      <div className={`rounded-none border-2 border-primary bg-white p-6 flex flex-col items-center justify-center space-y-4 shadow-brutal ${className}`}>
+      <div className={`rounded-card border border-primary/15 bg-white p-6 flex flex-col items-center justify-center space-y-4 shadow-sm ${className}`}>
         <div className="flex justify-between w-full">
           <div className={`h-3 w-16 ${shimmerClass}`} />
           <div className={`h-3 w-8 ${shimmerClass}`} />
@@ -31,7 +31,7 @@ export default function SkeletonCard({ variant = 'dashboard', className = '' }) 
 
   // Default: dashboard summary card
   return (
-    <div className={`rounded-none border-2 border-primary bg-white p-5 space-y-4 shadow-brutal ${className}`}>
+    <div className={`rounded-card border border-primary/15 bg-white p-6 space-y-4 shadow-sm ${className}`}>
       <div className="flex justify-between items-start">
         <div className="space-y-2">
           <div className={`h-5 w-48 ${shimmerClass}`} />

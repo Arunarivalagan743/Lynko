@@ -5,6 +5,7 @@ const {
   getDeviceAnalytics,
   getCountryAnalytics,
   getDailyTrends,
+  getGeoPins,
 } = require("../services/analyticsService");
 
 const getAnalyticsSummaryHandler = async (req, res, next) => {
@@ -96,6 +97,20 @@ const getDailyTrendsHandler = async (req, res, next) => {
   }
 };
 
+const getGeoPinsHandler = async (req, res, next) => {
+  try {
+    const ownerId = req.user?.id;
+    const { id } = req.params;
+    const { from, to } = req.query;
+
+    const geoPins = await getGeoPins(ownerId, id, { from, to });
+
+    return res.status(200).json({ geoPins });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 module.exports = {
   getAnalyticsSummary: getAnalyticsSummaryHandler,
   getRecentVisits: getRecentVisitsHandler,
@@ -103,4 +118,5 @@ module.exports = {
   getDeviceAnalytics: getDeviceAnalyticsHandler,
   getCountryAnalytics: getCountryAnalyticsHandler,
   getDailyTrends: getDailyTrendsHandler,
+  getGeoPins: getGeoPinsHandler,
 };

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from 'react-hot-toast'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import Input from '../components/ui/Input.jsx'
+import FieldMessage from '../components/ui/FieldMessage.jsx'
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx'
 import PageLoader from '../components/loading/PageLoader.jsx'
 import {
@@ -12,7 +14,6 @@ import {
   Calendar,
   LogOut,
   Settings,
-  AlertCircle,
   Trash2,
   Phone,
 } from 'lucide-react'
@@ -196,7 +197,13 @@ export default function SettingsPage() {
     : 'N/A'
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto py-6">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      className="space-y-6 max-w-2xl mx-auto py-6"
+    >
       {/* Page Header */}
       <div className="space-y-1">
         <h1 className="text-xl font-anton tracking-wider text-primary uppercase flex items-center gap-2">
@@ -209,20 +216,18 @@ export default function SettingsPage() {
       </div>
 
       {/* Error State Banner */}
-      {error && (
-        <Card className="border-error bg-white flex items-start gap-3 p-4" shadowSize="sm">
-          <AlertCircle className="text-error flex-shrink-0 mt-0.5" size={18} />
-          <div className="space-y-1">
-            <h4 className="font-space text-xs font-bold uppercase text-error">Account Operation Error</h4>
-            <p className="font-space text-xs text-error font-semibold">{error}</p>
-          </div>
-        </Card>
-      )}
+      {error && <FieldMessage tone="error" className="mb-0">{error}</FieldMessage>}
 
       {/* Main Settings Card */}
-      <Card className="divide-y-2 divide-primary p-0 overflow-hidden" shadowSize="md">
+      <motion.div
+        initial={{ opacity: 0, y: 25 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card className="divide-y-2 divide-primary p-0 overflow-hidden" shadowSize="md">
         <div className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-1">
               <h3 className="font-space text-xs font-bold uppercase tracking-wider text-primary">Profile Details</h3>
               <p className="text-xs font-space font-semibold uppercase text-on-surface-variant">
@@ -230,12 +235,12 @@ export default function SettingsPage() {
               </p>
             </div>
             {isEditing ? (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={handleCancelEdit}
-                  className="min-w-[140px]"
+                  className="w-full sm:w-auto sm:min-w-[140px]"
                 >
                   Cancel
                 </Button>
@@ -244,16 +249,16 @@ export default function SettingsPage() {
                   form="profile-form"
                   loading={updateLoading}
                   disabled={!isProfileDirty || hasValidationErrors}
-                  className="min-w-[170px]"
+                  className="w-full sm:w-auto sm:min-w-[170px]"
                 >
-                  Save Changes
+                  {updateLoading ? 'Saving…' : 'Save Changes'}
                 </Button>
               </div>
             ) : (
               <Button
                 type="button"
                 onClick={handleEditToggle}
-                className="min-w-[170px]"
+                className="w-full sm:w-auto sm:min-w-[170px]"
               >
                 Update Profile
               </Button>
@@ -302,7 +307,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Session Management */}
-        <div className="p-6 bg-surface-container-low flex items-center justify-between gap-4">
+        <div className="p-6 bg-surface-container-low flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <h4 className="font-space text-xs font-bold uppercase text-primary">Session Management</h4>
             <p className="font-space text-[9px] font-bold text-on-surface-variant uppercase">
@@ -313,10 +318,10 @@ export default function SettingsPage() {
           <Button
             onClick={handleLogout}
             loading={loading}
-            className="border-2 border-primary bg-error text-white shadow-brutal hover:bg-error/80 active:translate-x-[4px] active:translate-y-[4px] active:shadow-none font-semibold text-xs py-2 h-9 flex items-center gap-1.5"
+            className="w-full sm:w-auto border-2 border-primary bg-error text-white shadow-brutal hover:bg-error/80 active:translate-x-[4px] active:translate-y-[4px] active:shadow-none font-semibold text-xs py-2 h-9 flex items-center justify-center gap-1.5"
           >
             <LogOut size={14} />
-            Logout Account
+            {loading ? 'Signing out…' : 'Logout Account'}
           </Button>
         </div>
 
@@ -331,13 +336,14 @@ export default function SettingsPage() {
             onClick={handleDeleteAccount}
             loading={deleteLoading}
             variant="secondary"
-            className="border-2 border-error bg-white text-error shadow-brutal hover:bg-error/10 active:translate-x-[4px] active:translate-y-[4px] active:shadow-none font-semibold text-xs py-2 h-9 flex items-center gap-1.5"
+            className="w-full sm:w-auto border-2 border-error bg-white text-error shadow-brutal hover:bg-error/10 active:translate-x-[4px] active:translate-y-[4px] active:shadow-none font-semibold text-xs py-2 h-9 flex items-center justify-center gap-1.5"
           >
             <Trash2 size={14} />
             Delete Account
           </Button>
         </div>
-      </Card>
+        </Card>
+      </motion.div>
 
       <ConfirmDialog
         open={confirmState.open}
@@ -374,7 +380,7 @@ export default function SettingsPage() {
         onConfirm={handleConfirmAction}
         onCancel={closeConfirm}
       />
-    </div>
+    </motion.div>
   )
 }
 export { SettingsPage as Profile }
