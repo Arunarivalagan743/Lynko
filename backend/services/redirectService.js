@@ -1,4 +1,3 @@
-const https = require("https");
 const { Url } = require("../model/Url");
 const { Visit } = require("../model/Visit");
 const { AppError } = require("../utils/AppError");
@@ -208,46 +207,74 @@ const extractVisitMetadata = (req) => {
   };
 };
 
-const fetchCountryFromIp = (ipAddress) => {
+const http = require("http");
+
+/**
+ * Fetch country from a single GeoIP endpoint.
+ * @param {string} url  - full HTTP URL to fetch JSON from
+ * @param {function} extract - (parsed) => string | null
+ * @param {number} timeoutMs
+ */
+const fetchFromGeoEndpoint = (url, extract, timeoutMs = 4000) => {
   return new Promise((resolve) => {
-    const normalizedIp = (ipAddress || "").replace(/^::ffff:/, "").trim();
-    const isLocalhost = 
-      !normalizedIp || 
-      normalizedIp === "127.0.0.1" || 
-      normalizedIp === "::1" || 
-      normalizedIp.toLowerCase() === "localhost" || 
-      normalizedIp.includes("127.0.0.1");
-
-    if (isLocalhost) {
-      return resolve("Development");
-    }
-
-    const cleanIp = normalizedIp;
-    
-    const req = https.get(`https://ip-api.com/json/${cleanIp}?fields=country`, (res) => {
+    const req = http.get(url, (res) => {
       let data = "";
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
+      res.on("data", (chunk) => { data += chunk; });
       res.on("end", () => {
         try {
           const parsed = JSON.parse(data);
-          resolve(parsed.country || "Unknown");
+          const country = extract(parsed);
+          resolve(country && country !== "Unknown" ? country : null);
         } catch (_) {
-          resolve("Unknown");
+          resolve(null);
         }
       });
     });
 
-    req.on("error", () => {
-      resolve("Unknown");
-    });
+    req.on("error", () => resolve(null));
 
-    req.setTimeout(1000, () => {
+    req.setTimeout(timeoutMs, () => {
       req.destroy();
-      resolve("Unknown");
+      resolve(null);
     });
   });
+};
+
+const fetchCountryFromIp = async (ipAddress) => {
+  const normalizedIp = (ipAddress || "").replace(/^::ffff:/, "").trim();
+
+  const isLocalhost =
+    !normalizedIp ||
+    normalizedIp === "127.0.0.1" ||
+    normalizedIp === "::1" ||
+    normalizedIp.toLowerCase() === "localhost" ||
+    normalizedIp.startsWith("192.168.") ||
+    normalizedIp.startsWith("10.") ||
+    normalizedIp.startsWith("172.");
+
+  if (isLocalhost) {
+    return "Development";
+  }
+
+  const ip = encodeURIComponent(normalizedIp);
+
+  // Primary: ip-api.com — free, fast, no key needed (HTTP only on free tier)
+  const primary = await fetchFromGeoEndpoint(
+    `http://ip-api.com/json/${ip}?fields=status,country`,
+    (p) => (p.status === "success" ? p.country : null),
+    4000
+  );
+  if (primary) return primary;
+
+  // Fallback: ipapi.co — separate free provider
+  const fallback = await fetchFromGeoEndpoint(
+    `http://ipapi.co/${ip}/json/`,
+    (p) => p.country_name || null,
+    4000
+  );
+  if (fallback) return fallback;
+
+  return "Unknown";
 };
 
 /**
