@@ -46,6 +46,7 @@ export const AuthProvider = ({ children }) => {
     accessToken: null,
     isInitializing: true,
   })
+  const [authActionLoading, setAuthActionLoading] = useState(false)
 
   // Synchronize token value to a ref for synchronous client access without stale render lags
   const tokenRef = useRef(null)
@@ -123,27 +124,11 @@ export const AuthProvider = ({ children }) => {
 
   // User Login Action
   const login = useCallback(async (payload) => {
-    const response = await loginRequest(payload)
-    const { user, accessToken, refreshToken } = response
+    setAuthActionLoading(true)
+    try {
+      const response = await loginRequest(payload)
+      const { user, accessToken, refreshToken } = response
 
-    setAuthToken(accessToken)
-    writeStoredRefreshHint(refreshToken)
-
-    setAuthState({
-      user: user || null,
-      accessToken,
-      isInitializing: false,
-    })
-
-    return response
-  }, [])
-
-  // User Signup Action (auto-logs in user upon registration success)
-  const signup = useCallback(async (payload) => {
-    const response = await signupRequest(payload)
-    const { user, accessToken, refreshToken } = response
-
-    if (accessToken && refreshToken) {
       setAuthToken(accessToken)
       writeStoredRefreshHint(refreshToken)
 
@@ -152,13 +137,40 @@ export const AuthProvider = ({ children }) => {
         accessToken,
         isInitializing: false,
       })
-    }
 
-    return response
+      return response
+    } finally {
+      setAuthActionLoading(false)
+    }
+  }, [])
+
+  // User Signup Action (auto-logs in user upon registration success)
+  const signup = useCallback(async (payload) => {
+    setAuthActionLoading(true)
+    try {
+      const response = await signupRequest(payload)
+      const { user, accessToken, refreshToken } = response
+
+      if (accessToken && refreshToken) {
+        setAuthToken(accessToken)
+        writeStoredRefreshHint(refreshToken)
+
+        setAuthState({
+          user: user || null,
+          accessToken,
+          isInitializing: false,
+        })
+      }
+
+      return response
+    } finally {
+      setAuthActionLoading(false)
+    }
   }, [])
 
   // User Logout Action
   const logout = useCallback(async () => {
+    setAuthActionLoading(true)
     const storedToken = readStoredRefreshHint()
     try {
       if (storedToken) {
@@ -174,6 +186,7 @@ export const AuthProvider = ({ children }) => {
         accessToken: null,
         isInitializing: false,
       })
+      setAuthActionLoading(false)
     }
   }, [])
 
@@ -197,13 +210,14 @@ export const AuthProvider = ({ children }) => {
     () => ({
       ...authState,
       isAuthenticated: Boolean(authState.accessToken),
+      authActionLoading,
       login,
       signup,
       logout,
       refreshSession,
       getCurrentUser,
     }),
-    [authState, login, signup, logout, refreshSession, getCurrentUser]
+    [authState, authActionLoading, login, signup, logout, refreshSession, getCurrentUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

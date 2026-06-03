@@ -6,10 +6,13 @@ import ProtectedRoute from './routes/ProtectedRoute.jsx'
 import PublicRoute from './routes/PublicRoute.jsx'
 import DashboardLayout from './layouts/DashboardLayout.jsx'
 import RestoreLoader from './components/loading/RestoreLoader.jsx'
+import JumpingLoader from './components/loading/JumpingLoader.jsx'
+import { useAuth } from './context/AuthContext.jsx'
 import { routesConfig } from './routes/routesConfig.jsx'
 import { PATHS } from './routes/paths.js'
 
 const App = () => {
+  const { authActionLoading } = useAuth()
   // Separate routes into their respective layout routing gates
   const generalRoutes = routesConfig.filter((r) => !r.isProtected && !r.isPublicOnly)
   const publicOnlyRoutes = routesConfig.filter((r) => r.isPublicOnly)
@@ -17,6 +20,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-background text-text">
+      {authActionLoading && <JumpingLoader />}
       <Suspense fallback={<RestoreLoader />}>
         <Routes>
           {/* General/Public access routes */}

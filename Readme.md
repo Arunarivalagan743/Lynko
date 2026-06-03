@@ -1,419 +1,413 @@
+# ⚡ Lynko — Premium Retro-Brutalist URL Shortener & Analytics Platform
 
-Got it. I reviewed the backend architecture and compiled a frontend-ready API contract plus a complete implementation roadmap. No code included.
+```
+   __          __   _  __  ____  
+  / /   _  __ / /_ / |/ / / __ \ 
+ / /__ / // // __//    // /_/ / 
+/____/ \_, //_/  /_/|_/ \____/  
+      /___/                     
+```
 
-Backend Architecture Overview
+Lynko is an enterprise-grade, full-stack URL shortening and traffic intelligence platform. Merging a sleek modern retro-brutalist aesthetic (deep green accents, crisp solid offsets, card borders, and fluid animations) with advanced security controls and rich analytic breakdowns, Lynko elevates simple redirections into comprehensive visitor telemetry.
 
-Layers: Routes → Controllers → Services → Models. Controllers are thin, services enforce business rules and DB access.
-Auth: JWT access tokens + refresh tokens stored server-side (hashed) with rotation and family revocation.
-Ownership: Enforced in services by scoping queries to ownerId. There is a requireOwnership middleware, but it is not used in routes; ownership is effectively enforced at the service/query layer.
-Validation: Zod schemas via validate middleware; 400 errors include details with flattened Zod errors.
-Errors: Consistent JSON errors { message, details? }, plus stack when not in production.
-Rate limits: Auth endpoints (10/15m), password reset (5/15m), redirect (120/min).
-Frontend-Ready API Contract
+---
 
-Base URL
+## 🌐 Production Deployments
+- **Frontend App (Vercel)**: [https://lynko-three.vercel.app](https://lynko-three.vercel.app)
+- **Backend API (Render)**: [https://lynko-9867.onrender.com](https://lynko-9867.onrender.com)
 
-https://<host> for production
-http://localhost:4000 default in dev
-Auth Header
+---
 
-Authorization: Bearer <accessToken>
-Error Shape
+## 💡 Problem Statement & Motivation
+In digital marketing, brand distribution, and public analytics sharing, modern users need more than just link condensation. They require:
+- **Comprehensive security** against token theft and link hijacking.
+- **Granular, human-friendly telemetry** (device profiles, daily click trends, geographic locations, and referrer sources) without relying on invasive external tracking platforms.
+- **Bulk shortening capacity** for massive outreach campaigns.
+- **Brand consistency** through customizable aliases and QR code rendering.
 
-Other errors:
+Lynko was engineered to address these challenges, offering a fully self-hosted, scalable, REST-powered architecture with real-time analytics aggregation.
 
-Authentication APIs
-POST /api/auth/signup
+---
 
-Auth required: No
-Body: { email, password }
-email valid email
-password 8–72 chars
-Params: none
-Query: none
-Success 201:
-Errors: 400 validation, 409 email in use
-Frontend usage: Signup form → store tokens → set auth state
-POST /api/auth/login
+## ✨ Features
 
-Auth required: No
-Body: { email, password }
-Success 200: same as signup
-Errors: 401 invalid credentials
-Frontend usage: Login form → store tokens → set auth state
-POST /api/auth/refresh
+### 📋 Feature Checklist
 
-Auth required: No
-Body: { refreshToken }
-Success 200:
-Errors: 401 unauthorized
-Frontend usage: Axios interceptor refresh flow
-POST /api/auth/logout
+| Category | Feature | Status | Details |
+| :--- | :--- | :---: | :--- |
+| **Mandatory** | User Signup & Login | ✅ | Secure registration and login with bcrypt hashing. |
+| **Mandatory** | Protected Dashboard Routes | ✅ | React Router gates redirecting unauthorized users. |
+| **Mandatory** | Scoped Owner Control | ✅ | Users can only view, edit, or delete links they created. |
+| **Mandatory** | URL Shortening & Expiry | ✅ | Sanity input validation with dynamic expiration handling. |
+| **Mandatory** | Server-Side Redirection | ✅ | Custom Express route resolving links and logging visits. |
+| **Mandatory** | Responsive UI | ✅ | Optimized layouts across mobile, tablet, and desktop viewports. |
+| **Mandatory** | Interactive Analytics | ✅ | Comprehensive click count tracking and visit history logs. |
+| **Bonus** | Custom Alias | ✅ | Unique custom paths (e.g., `/r/special-promo`). |
+| **Bonus** | QR Code Generation | ✅ | Auto-generated downloadable QR codes for every link. |
+| **Bonus** | Expiry Date Purging | ✅ | Automatic MongoDB TTL self-cleaning background indices. |
+| **Bonus** | Device & Browser Charts | ✅ | Breakdown graphs showing visitor browser, OS, and device types. |
+| **Bonus** | Daily Click Trends | ✅ | Time-series charts mapping traffic over a selected period. |
+| **Bonus** | Public Stats Page | ✅ | Non-sensitive, shareable page showcasing link traffic curves. |
+| **Bonus** | Destination URL Editing | ✅ | Live updating of existing shortcode redirection targets. |
+| **Bonus** | Bulk CSV Upload | ✅ | PapaParse-assisted multi-link CSV import widget. |
+| **Bonus** | Traffic Quality Analytics | ✅ | Automatic classification of hits (Human, Bot, Suspicious). |
+| **Bonus** | Referrer & UTM Tracker | ✅ | Logs source platform metrics (LinkedIn, Twitter, Google, etc.). |
 
-Auth required: No
-Body: { refreshToken }
-Success 200: { "message": "Logged out" }
-Errors: none (silent if invalid token)
-Frontend usage: Revoke current refresh token
-POST /api/auth/logout-all
+---
 
-Auth required: Yes
-Body: none
-Success 200: { "message": "Logged out everywhere" }
-Errors: 401 unauthorized
-Frontend usage: Account security action
-POST /api/auth/forgot-password
+## 🛠️ Tech Stack
 
-Auth required: No
-Body: { email }
-Success 200: { "message": "If the account exists, a reset link was issued." }
-Non-prod: response may include { resetToken }
-Errors: 400 validation, 429 rate limit
-Frontend usage: Password reset request form
-POST /api/auth/reset-password
+### Frontend
+- **Framework**: React 18+ (Vite-powered SPA)
+- **Styling**: Vanilla CSS + TailwindCSS (Brutalist styling primitives)
+- **Charts**: Recharts (Dynamic vector analytics graphing)
+- **Animations**: Framer Motion (Transitions, modals, state shifts)
+- **CSV Parser**: PapaParse (Chunked browser-side file scanning)
+- **Icons**: Lucide React
 
-Auth required: No
-Body: { token, password }
-Success 200: { "message": "Password reset successful" }
-Errors: 400 invalid/expired token
-Frontend usage: Reset password form
-User API
-GET /api/users/me
+### Backend
+- **Platform**: Node.js & Express
+- **Validation**: Zod (Type-safe input sanitization schemas)
+- **Authentication**: JSON Web Tokens (JWT) + bcrypt (12 rounds)
+- **User Agent Parser**: UAParser.js (Browser, OS, device modeling)
 
-Auth required: Yes
-Body: none
-Success 200:
-Errors: 401 unauthorized, 404 user not found
-Frontend usage: Load profile for header/settings
-URL APIs
-POST /api/urls
+### Database & Security
+- **Store**: MongoDB & Mongoose ODM
+- **Index Management**: Compound search indices and TTL auto-expirations
+- **Rate Limiting**: Express Rate Limit (Auth endpoint defense)
 
-Auth required: Yes
-Body: { originalUrl, customAlias?, expiresAt? }
-customAlias 4–32 chars [a-zA-Z0-9_-]
-expiresAt ISO date string
-Success 201:
-Errors: 400 validation, 401, 409 alias exists, 400 safety failed
-Frontend usage: Create form + show QR, copy short URL
-GET /api/urls
+---
 
-Auth required: Yes
-Body: none
-Success 200: { "urls": [ { ... } ] }
-Errors: 401
-Frontend usage: Dashboard list
-GET /api/urls/:id
+## 🏛️ Architecture Overview
 
-Auth required: Yes
-Params: id (24-char ObjectId)
-Success 200: { "url": { ... } }
-Errors: 401, 404 not found
-Frontend usage: Edit page prefill
-PATCH /api/urls/:id
+```
+Client (React SPA) ──[HTTPS]──> Express Router ──> Controllers ──> Services ──> MongoDB (Mongoose)
+```
 
-Auth required: Yes
-Body: { originalUrl?, expiresAt? } (at least one)
-Success 200: { "url": { ... } }
-Errors: 400 validation, 401, 404, 400 safety failed
-Frontend usage: Save edits
-DELETE /api/urls/:id
+1. **Frontend Architecture**: Enforces centralized state control using `AuthContext.jsx` which contains automatic Axios request/response interceptors to catch `401 Unauthorized` responses and initiate Refresh Token Rotation (RTR) silently.
+2. **Backend Architecture**: Follows a layered pattern: **Routes** (endpoints/limits) ➡️ **Controllers** (HTTP mapping & input parsing) ➡️ **Services** (business operations, database transactions, audit logging) ➡️ **Models** (Database schemas).
+3. **Redirection Logic**: Handled server-side. Hits trigger `GET /r/:shortCode` where statistics parsing runs asynchronously to keep redirection speed instantaneous.
 
-Auth required: Yes
-Success 200:
-Errors: 401, 404
-Frontend usage: Delete confirmation
-Redirect API
-GET /r/:shortCode
+---
 
-Auth required: No
-Query (optional): campaign or utm_campaign
-Success 302: Redirect to original URL
-Errors: 404 not found, 410 expired
-Frontend usage: Public redirect
-Analytics APIs (Authenticated)
-GET /api/urls/:id/analytics
+## 📊 System Sequence Flows
 
-Auth required: Yes
-Query: from?, to? (ISO date)
-Success 200:
-Errors: 400 date validation, 401, 404
-GET /api/urls/:id/visits
+### 1. High-Level Architecture Diagram
+```mermaid
+graph TD
+    Client[React SPA] -->|HTTPS Request| Gateway[Express Router / Rate Limiters]
+    Gateway -->|Verify Token| AuthMiddleware[JWT Auth Middleware]
+    AuthMiddleware -->|Route Matches| Controllers[Express Controllers]
+    Controllers -->|Validate Schema| ZodValidators[Zod Validation]
+    Controllers -->|Process Data| Services[Business Services]
+    Services -->|Persist/Retrieve| Database[(MongoDB)]
+```
 
-Auth required: Yes
-Query: page? (>=1), limit? (1–100), from?, to?
-Success 200:
-GET /api/urls/:id/browsers
+### 2. Authentication (RTR) Flow
+```mermaid
+sequenceDiagram
+    participant App as React Frontend
+    participant API as Express Auth API
+    participant DB as MongoDB
 
-Auth required: Yes
-Query: from?, to?
-Success 200: { "browsers": { "chrome": 0, "firefox": 0, "safari": 0, "edge": 0 } }
-GET /api/urls/:id/devices
+    App->>API: POST /api/auth/login
+    API->>DB: Query User & Validate Hash
+    DB-->>API: User details
+    API->>DB: Create Refresh Token Record
+    API-->>App: Access Token (Body) & Refresh Token (HTTP-Only)
+    Note over App, API: Access Token Expires after 15 minutes
+    App->>API: API Request (401 Error)
+    App->>API: POST /api/auth/refresh (send old refresh token)
+    API->>DB: Verify token hash is active
+    alt Token Active
+        API->>DB: Revoke old token & issue new pair
+        API-->>App: New Access Token + New Refresh Token
+    else Token Replayed / Revoked
+        API->>DB: Revoke all tokens in family
+        API-->>App: 401 Force Logout
+    end
+```
 
-Auth required: Yes
-Query: from?, to?
-Success 200: { "devices": { "mobile": 0, "desktop": 0, "tablet": 0 } }
-GET /api/urls/:id/trends
+### 3. Redirection & Analytics Processing Flow
+```mermaid
+sequenceDiagram
+    participant User as Visitor
+    participant Serv as Redirect Engine
+    participant DB as MongoDB
+    participant Dest as Destination Page
 
-Auth required: Yes
-Query: from?, to?
-Success 200: { "trends": [ { "date": "YYYY-MM-DD", "count": 0 } ] }
-Public Stats API
-GET /stats/:shortCode
+    User->>Serv: GET /r/:shortCode
+    Serv->>DB: Find active URL document
+    alt URL is expired or not found
+        Serv-->>User: Return HTTP 404 / 410 Error Page
+    else URL is active
+        par Asynchronous Analytics Write
+            Serv->>Serv: Parse browser, device type, OS, and referrer
+            Serv->>DB: Insert new Visit record
+            Serv->>DB: Increment clickCount on URL
+        end
+        Serv-->>User: HTTP 302 Redirect to destinationUrl
+        User->>Dest: Load target page
+    end
+```
 
-Auth required: No
-Success 200:
-Errors: 404 not found
-Frontend usage: Public stats page
-Bulk Upload API
-POST /api/urls/bulk
+---
 
-Auth required: Yes
-Body:
-Success 200:
-Errors: 400 validation, 401, CSV > 5MB, > 500 rows
-Frontend usage: CSV parse → build rows → POST
-Flow Explanations
+## 🗄️ Database Schemas & Relationships
 
-JWT authentication flow
+### 1. User Schema (`User`)
+Stores account credentials. Password hashes are excluded from defaults to prevent accidental leaks.
+*   `email` (String, Unique, Lowercase, Indexed)
+*   `passwordHash` (String, Select: False)
+*   `role` (String, Enum: `["user", "admin"]`)
+*   `isActive` (Boolean)
+*   `lastLoginAt` (Date)
 
-Access tokens signed with JWT_ACCESS_SECRET and include sub and role.
-Frontend stores access token (memory + optional storage) and attaches via Authorization: Bearer.
-On 401, trigger refresh flow.
-Refresh token flow
+### 2. URL Schema (`Url`)
+Holds redirection details.
+*   `ownerId` (ObjectId ➡️ references `User`, Indexed)
+*   `originalUrl` (String)
+*   `shortCode` (String, Unique, Indexed)
+*   `clickCount` (Number, Indexed for sorting)
+*   `expiresAt` (Date, TTL auto-purge index)
+*   `platforms` (Array of Strings)
 
-Refresh tokens are JWTs stored hashed in DB.
-/refresh rotates token family: old token revoked, new refresh token issued.
-If a refresh token is reused or revoked, entire family is revoked (global logout).
-Ownership authorization
+### 3. Visit Schema (`Visit`)
+Documents redirection telemetry.
+*   `urlId` (ObjectId ➡️ references `Url`, Indexed)
+*   `timestamp` (Date, Indexed)
+*   `browser` (String)
+*   `device` (String)
+*   `operatingSystem` (String)
+*   `ipAddress` (String)
+*   `country` (String, Indexed)
+*   `referrer` (String, Indexed)
+*   `clickQuality` (String, Enum: `["human", "bot", "suspicious"]`)
 
-URL access is enforced by queries scoped to ownerId. If the record is not owned, the service returns 404.
-Redirect flow
+### 4. Refresh Token Schema (`RefreshToken`)
+Maintains cryptographic records for token rotation.
+*   `userId` (ObjectId ➡️ references `User`)
+*   `tokenHash` (String, Indexed)
+*   `familyId` (String, UUID)
+*   `revokedAt` (Date)
+*   `expiresAt` (Date, TTL Auto-purge)
 
-/r/:shortCode resolves Url, checks expiration, writes Visit, increments clickCount, and returns 302 redirect.
-Analytics flow
+---
 
-Visits are recorded with browser/device/OS, bot detection, referrer, campaign, click quality.
-Authenticated analytics endpoints aggregate Visit records with optional date filters.
-Public stats flow
+## 📂 Folder Structure
 
-/stats/:shortCode aggregates clicks, browsers, devices, trends without auth.
-QR generation flow
+```
+Lynko/
+├── backend/
+│   ├── config/             # DB and Env initializers
+│   ├── controllers/        # Express route handlers
+│   ├── middleware/         # Auth, validation and rate limit guards
+│   ├── model/              # MongoDB Mongoose schemas
+│   ├── routes/             # API routes definition
+│   ├── services/           # Core database transactions & calculations
+│   ├── utils/              # Token helpers, time parsers, logger
+│   └── validators/         # Input sanitization via Zod schemas
+└── frontend/
+    ├── src/
+    │   ├── api/            # API integration & interceptors
+    │   ├── assets/         # Page illustrations and assets
+    │   ├── components/     # UI primitives, loaders, navbars, sidebars
+    │   ├── context/        # Global Auth providers
+    │   ├── layouts/        # Layout frameworks (Dashboard shell)
+    │   ├── pages/          # Core pages (Dashboard, Analytics, Bulk, etc.)
+    │   ├── routes/         # Router configuration & path config
+    │   └── utils/          # Formatting helpers and local storage utilities
+```
 
-On URL creation (single or bulk), QR code is generated from the short URL and returned as qrCodeDataUrl.
-Bulk upload flow
+---
 
-Validates size/row count/aliases; per-row success or failure with error details.
-URL safety flow
+## ⚙️ Environment Variables
 
-Local validation blocks disallowed protocols, private IPs, invalid hostnames.
-Optional Safe Browsing and VirusTotal checks using API keys; failures can mark URLs as suspicious or malicious.
-COMPLETE FRONTEND IMPLEMENTATION ROADMAP (No Code)
-PHASE 1 – Project setup
+### Backend (`backend/.env`)
+| Variable | Required | Description |
+| :--- | :---: | :--- |
+| `PORT` | Yes | Port number to run the Express API (Default: `4000`). |
+| `MONGODB_URI` | Yes | Connection string to MongoDB instance. |
+| `JWT_ACCESS_SECRET` | Yes | Secret signature string for signing short-lived access tokens. |
+| `JWT_ACCESS_EXPIRES_IN` | Yes | Expiry duration for access token (e.g., `15m`). |
+| `JWT_REFRESH_SECRET` | Yes | Secret signature string for signing refresh tokens. |
+| `JWT_REFRESH_EXPIRES_IN`| Yes | Expiry duration for refresh token (e.g., `7d`). |
+| `RESET_TOKEN_EXPIRES_IN`| Yes | Expiry duration for password reset tokens (e.g., `15m`). |
+| `FRONTEND_URL` | Yes | Allowed client web origin for CORS policies (e.g., `http://localhost:5173`). |
+| `SAFE_BROWSING_API_KEY`| No | API key to perform Google Safe Browsing checks. |
+| `VIRUSTOTAL_API_KEY` | No | API key to perform VirusTotal destination threat scans. |
 
-Goal: Initialize Vite + React + Tailwind + routing + lint baseline.
-Components: none
-Pages: none
-Hooks: none
-State: none
-API calls: none
-Data flow: none
-UI design: define theme tokens, typography, spacing scale
-Files to create: package.json, vite.config, tailwind.config, src/main, src/styles, .env
-PHASE 2 – Folder structure
+### Frontend (`frontend/.env`)
+| Variable | Required | Description |
+| :--- | :---: | :--- |
+| `VITE_API_URL` | Yes | Base URL target pointing to the backend API endpoint. |
 
-Goal: Establish scalable structure.
-Components: layout shell, UI primitives folder
-Pages: placeholders
-Hooks: useAuth, useApi
-State: context skeleton
-API calls: none
-Data flow: top-level app → router → layout
-UI design: define design system primitives
-Files to create: src/pages, src/components, src/hooks, src/api, src/store, src/utils, src/routes
-PHASE 3 – Authentication pages
+---
 
-Goal: Login, signup, forgot/reset password flows.
-Components: AuthCard, FormField, PasswordStrength, AuthLayout
-Pages: Login, Signup, ForgotPassword, ResetPassword
-Hooks: useAuthForm, useToast
-State: local form state, auth context set on success
-API calls: /api/auth/login, /signup, /forgot-password, /reset-password
-Data flow: form → validate (Zod) → API → auth state
-UI design: clean, minimal, strong CTA hierarchy
-Files to create: pages + auth form components + zod schemas
-PHASE 4 – Protected routing
+## 🚀 Local Development Setup
 
-Goal: Guard routes and handle refresh flow.
-Components: ProtectedRoute, AuthGate
-Pages: none
-Hooks: useAuth, useRefreshToken
-State: auth tokens + user
-API calls: /api/auth/refresh
-Data flow: route entry → token check → refresh if needed
-UI design: full-page loader for auth gating
-Files to create: route guards, auth provider
-PHASE 5 – Dashboard
+### 1. MongoDB Setup
+Ensure you have MongoDB running locally:
+```bash
+mongod --dbpath /your/db/path
+```
 
-Goal: List user URLs and quick actions.
-Components: UrlTable, UrlRow, CopyButton, QrPreview
-Pages: Dashboard
-Hooks: useUrls
-State: urls list + filters
-API calls: /api/urls
-Data flow: dashboard load → fetch → table
-UI design: data-rich but clean, sortable list
-Files to create: dashboard page + table components
-PHASE 6 – Create short URL
+### 2. Backend Installation & Start
+Navigate to the `backend/` directory, install packages, and boot the server:
+```bash
+cd backend
+npm install
+# Create a .env file based on the Environment Variables section
+npm run dev
+```
 
-Goal: Form to create new URL.
-Components: CreateUrlForm, ExpiryPicker, AliasField
-Pages: CreateUrl
-Hooks: useCreateUrl
-State: form state, result state
-API calls: /api/urls
-Data flow: form → API → show result/QR
-UI design: focus on confidence and safety feedback
-Files to create: page + form + zod schema
-PHASE 7 – QR Code display
+### 3. Frontend Installation & Start
+Open a separate terminal window, install packages, and boot the Vite server:
+```bash
+cd frontend
+npm install
+# Create a .env file and set VITE_API_URL
+npm run dev
+```
 
-Goal: Show QR from create and list views.
-Components: QrModal, QrCard
-Pages: none
-Hooks: useQr
-State: selected QR data URL
-API calls: none (uses response data)
-Data flow: create/list → QR modal
-UI design: clear, download action
-Files to create: QR components
-PHASE 8 – Edit URL
+---
 
-Goal: Allow changing original URL or expiry.
-Components: EditUrlForm
-Pages: EditUrl
-Hooks: useUrl, useUpdateUrl
-State: current URL + form
-API calls: /api/urls/:id (GET, PATCH)
-Data flow: load → edit → update → success toast
-UI design: cautious, warn about safety re-check
-Files to create: edit page + zod schema
-PHASE 9 – Delete URL
+## 🔌 API Route Reference
 
-Goal: Safe delete confirmation.
-Components: ConfirmDialog
-Pages: none
-Hooks: useDeleteUrl
-State: modal open + selected id
-API calls: /api/urls/:id (DELETE)
-Data flow: click delete → confirm → API → list refresh
-UI design: destructive emphasis
-Files to create: dialog component
-PHASE 10 – Analytics dashboard
+### 🔐 Auth Endpoints
+| HTTP Method | Route | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/api/auth/signup` | No | Creates a user account and returns token pairs. |
+| `POST` | `/api/auth/login` | No | Validates password and generates auth sessions. |
+| `POST` | `/api/auth/refresh` | No | Exchanges refresh token for rotated token sets. |
+| `POST` | `/api/auth/logout` | No | Invalidates and revokes the active session token. |
+| `POST` | `/api/auth/forgot-password`| No | Dispatches password reset code token. |
+| `POST` | `/api/auth/reset-password` | No | Validates reset token and applies a new password. |
 
-Goal: Overview metrics + recent visits.
-Components: AnalyticsSummary, RecentVisitsTable
-Pages: Analytics
-Hooks: useAnalyticsSummary, useVisits
-State: date range + pagination
-API calls: /api/urls/:id/analytics, /api/urls/:id/visits
-Data flow: select URL → fetch → render
-UI design: metric cards + table grid
-Files to create: analytics page + hooks
-PHASE 11 – Browser analytics charts
+### 🔗 Link Management Endpoints
+| HTTP Method | Route | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/api/urls` | Yes | Shortens a URL (optional: expiry date, custom alias). |
+| `GET` | `/api/urls` | Yes | Lists all short URLs owned by the caller. |
+| `GET` | `/api/urls/:id` | Yes | Retrieves full metadata details of a link. |
+| `PATCH` | `/api/urls/:id` | Yes | Edits destination target or changes link expiration. |
+| `DELETE` | `/api/urls/:id` | Yes | Purges the link from database records. |
+| `POST` | `/api/urls/bulk` | Yes | Bulk uploads links from parsed CSV structures. |
 
-Goal: Browser distribution chart.
-Components: BrowserChart
-Pages: embedded in analytics
-Hooks: useBrowserAnalytics
-State: date range
-API calls: /api/urls/:id/browsers
-Data flow: range → fetch → chart
-UI design: clean segmented chart
-Files to create: chart component
-PHASE 12 – Device analytics charts
+### 📊 Real-Time Analytics Endpoints
+| HTTP Method | Route | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/api/urls/:id/analytics`| Yes | Returns total clicks, last visit time, and summary maps. |
+| `GET` | `/api/urls/:id/visits` | Yes | Paginated table logs of individual redirection visits. |
+| `GET` | `/api/urls/:id/browsers` | Yes | Breakdown counts of visitor browser clients. |
+| `GET` | `/api/urls/:id/devices` | Yes | Breakdown counts of device profile distributions. |
+| `GET` | `/api/urls/:id/trends` | Yes | Time-series metrics mapping click rates over days. |
+| `GET` | `/stats/:shortCode` | No | Public stats details matching a specific shortcode. |
 
-Goal: Device distribution chart.
-Components: DeviceChart
-Pages: embedded in analytics
-Hooks: useDeviceAnalytics
-State: date range
-API calls: /api/urls/:id/devices
-Data flow: range → fetch → chart
-UI design: icon-driven labels
-Files to create: chart component
-PHASE 13 – Daily trend charts (Recharts)
+---
 
-Goal: Time-series click trends.
-Components: DailyTrendsChart
-Pages: embedded in analytics
-Hooks: useDailyTrends
-State: date range
-API calls: /api/urls/:id/trends
-Data flow: range → fetch → chart
-UI design: minimal grid, clear legend
-Files to create: chart component
-PHASE 14 – Public stats page
+## 🛡️ Security Implementations
+- **Bcrypt (12 Rounds)**: Secures stored user passwords.
+- **RTR (Refresh Token Rotation)**: Protects against refresh token theft by automatically invalidating all child tokens if a token is reused.
+- **Query scoping**: Ownership validation is enforced at the database query level by scoping searches using `{ _id: urlId, ownerId: req.user.id }`.
+- **Zod Schema Sanitizers**: Restricts parameter strings, strips illegal request values, and strictly formats vanity codes.
 
-Goal: Public stats by short code.
-Components: PublicStatsCard, PublicTrendsChart
-Pages: PublicStats
-Hooks: usePublicStats
-State: shortCode input / route param
-API calls: /stats/:shortCode
-Data flow: load → fetch → render
-UI design: shareable, light branding
-Files to create: page + hook
-PHASE 15 – Bulk CSV upload (PapaParse)
+---
 
-Goal: Bulk import URLs.
-Components: BulkUploadForm, UploadTable, UploadResults
-Pages: BulkUpload
-Hooks: useBulkUpload
-State: parsed rows, file size, upload results
-API calls: /api/urls/bulk
-Data flow: parse → validate → upload → report
-UI design: progress + success/fail visuals
-Files to create: bulk page + parser util
-PHASE 16 – Responsive UI
+## 📊 Telemetry & Analytics Engines
+- **Click Tracking**: Logs redirects dynamically.
+- **OS & Browser Signatures**: Categorizes visitor engines using HTTP header matching.
+- **Daily Trend curves**: Generates daily traffic frequencies.
+- **Traffic Quality Classifier**: Categorizes visits into Human, Bot, or Suspicious metrics.
+- **Geographic Parser**: Translates client IP details into geographic metrics.
 
-Goal: Mobile and tablet support.
-Components: responsive nav, drawers
-Pages: all
-Hooks: useMedia
-State: layout state
-API calls: none
-Data flow: breakpoints → layout changes
-UI design: flexible cards and stack tables
-Files to create: layout variants
-PHASE 17 – Error handling
+---
 
-Goal: Standardize API errors.
-Components: ErrorState, InlineError
-Pages: all
-Hooks: useApiError
-State: error map per form/endpoint
-API calls: all
-Data flow: API error → mapping → UI
-UI design: clear, non-blocking messaging
-Files to create: error utilities
-PHASE 18 – Loading states
+## 🎨 Design & Sample Outputs
+Below are visual maps of our retro-brutalist layouts:
 
-Goal: Smooth UX during data fetch.
-Components: Skeleton, Spinner, ButtonLoading
-Pages: all
-Hooks: useLoading
-State: per-request loading flags
-API calls: all
-Data flow: request → loading → render
-UI design: consistent placeholders
-Files to create: loading components
-PHASE 19 – Deployment
+### 1. Main Dashboard Interface
+```
+┌────────────────────────────────────────────────────────┐
+│  ⚡ LYNKO     Dashboard   URLs   Analytics   Settings │
+├────────────────────────────────────────────────────────┤
+│  ⚡ QUICK SHORTEN                                      │
+│  [ Destination URL ]  [ Custom Alias ]  [ Expiry Date ]│
+│  └─[ Snip It Button ]                                  │
+├────────────────────────────────────────────────────────┤
+│  🏆 LATEST TRAILS                                      │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ Short URL  │  Original URL  │ Clicks │ Created   │  │
+│  ├────────────┼────────────────┼────────┼───────────┤  │
+│  │ /r/promo   │  https://...   │   42   │ 10m ago   │  │
+│  └────────────┴────────────────┴────────┴───────────┘  │
+└────────────────────────────────────────────────────────┘
+```
 
-Goal: Build + deploy config.
-Components: none
-Pages: none
-Hooks: none
-State: none
-API calls: none
-Data flow: build → deploy
-UI design: ensure base URL env strategy
-Files to create: .env.production, deployment docs
+### 2. Analytics Visualization Page
+```
+┌────────────────────────────────────────────────────────┐
+│  📊 TRAFFIC DYNAMICS - /r/promo                        │
+│  ┌─────────────────────┐  ┌─────────────────────────┐  │
+│  │ Clicks: 42          │  │ Devices                 │  │
+│  │ Quality: 95% Human  │  │ Mobile [███████░░░] 70%  │  │
+│  │ Active: 3 days      │  │ Desktop [███░░░░░░░] 30%  │  │
+│  └─────────────────────┘  └─────────────────────────┘  │
+│  📈 CLICK DENSITY TREND                                │
+│    Clicks                                              │
+│      ▲                                                 │
+│   20 ┼       / \                                       │
+│   10 ┼  ____/   \____                                  │
+│      └────────────────────────► Date                   │
+└────────────────────────────────────────────────────────┘
+```
+
+### 3. Database Documents
+Refer to the exact JSON models shown in the `ARCHITECTURE.md` file or standard query logs.
+
+---
+
+## 🤖 AI Planning & Building Document
+
+### 1. Planning Phase
+- **Target Audience**: Users seeking a high-performance URL shortener with comprehensive analytics.
+- **UX Theme**: Modern retro-brutalist (bold borders, forest green highlights `#00322d`, high contrast).
+- **Core Objectives**: Zero dependencies on third-party link generators; secure JWT and token rotation logic; robust visual dashboards.
+
+### 2. Feature Implementation Roadmap
+- **Phase A**: Database schemas and security rules (Auth & RTR family tracking).
+- **Phase B**: Core shortcode generation loops and server-side redirection engine.
+- **Phase C**: Front-end state providers and custom Brutalist component libraries.
+- **Phase D**: Multi-faceted telemetry collection and Recharts visual mapping.
+- **Phase E**: CSV parsing modules and public statistics layouts.
+
+### 3. Architectural Rationale
+- **MongoDB**: Ideal for storing flat, structured visit telemetry arrays alongside primary URL records.
+- **React SPA**: Ensures instant route changes, real-time chart interactions, and smooth client state.
+- **Refresh Token Rotation (RTR)**: Guarantees secure session persistence on client browsers without exposing credentials.
+
+---
+
+## 📽️ Demo Video
+> [!IMPORTANT]
+> **Video Demo Link**: [INSERT YOUR LOOM OR YOUTUBE VIDEO LINK HERE]
+> *(Please replace this placeholder with your actual Loom/YouTube video showcasing the working features, codebase walkthrough, and responsive design).*
+
+---
+
+## 🔮 Future Improvements
+1. **Dynamic Workspace Management**: Invite team members to manage shared link sets.
+2. **Geo-Location World Map**: Interactive SVGs charting exact visit coordinates.
+3. **Advanced A/B testing**: Route single short URLs to multiple destination targets based on weighted percentages.
+
+---
+
+## 🧑‍💻 Author
+**Arunarivalagan**  
+Full-Stack Software Developer  
+*   **GitHub**: [Arunarivalagan743](https://github.com/Arunarivalagan743)
+*   **Workspace**: [Lynko Project Repository](c:/Users/HP/Desktop/Personal-Projects/Lynko)
+
+---
+
+This project is a part of a hackathon run by https://katomaran.com
