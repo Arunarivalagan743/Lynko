@@ -32,15 +32,15 @@ const Button = forwardRef(
           size === 'xl' && 'h-12 px-7 text-sm font-bold uppercase tracking-wide',
           // Variants
           variant === 'primary' &&
-            'border-2 border-primary bg-primary text-white shadow-brutal hover:bg-primary/90 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none',
+          'border-2 border-primary bg-primary text-white shadow-brutal hover:bg-primary/90 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none',
           variant === 'secondary' &&
-            'border-2 border-primary bg-white text-primary shadow-brutal hover:bg-surface-container-low active:translate-x-[3px] active:translate-y-[3px] active:shadow-none',
+          'border-2 border-primary bg-white text-primary shadow-brutal hover:bg-surface-container-low active:translate-x-[3px] active:translate-y-[3px] active:shadow-none',
           variant === 'danger' &&
-            'border-2 border-error bg-error text-white shadow-brutal hover:bg-error/90 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none',
+          'border-2 border-error bg-error text-white shadow-brutal hover:bg-error/90 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none',
           variant === 'ghost' &&
-            'bg-transparent text-primary hover:bg-surface-container-low border border-transparent hover:border-primary/20',
+          'bg-transparent text-primary hover:bg-surface-container-low border border-transparent hover:border-primary/20',
           variant === 'outline' &&
-            'border-2 border-primary bg-transparent text-primary hover:bg-surface-container-low',
+          'border-2 border-primary bg-transparent text-primary hover:bg-surface-container-low',
           className,
         )}
         disabled={Comp === 'button' ? isDisabled : undefined}

@@ -76,13 +76,11 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }) {
           >
             {({ isActive }) => (
               <div
-                className={`flex items-center gap-3 w-full rounded-none border-2 border-primary font-space font-bold uppercase tracking-wider text-xs whitespace-nowrap transition-all duration-fast ${
-                  isCollapsed ? 'justify-center p-2.5 h-11 w-11 mx-auto' : 'px-4 py-3'
-                } ${
-                  isActive
+                className={`flex items-center gap-3 w-full rounded-none border-2 border-primary font-space font-bold uppercase tracking-wider text-xs whitespace-nowrap transition-all duration-fast ${isCollapsed ? 'justify-center p-2.5 h-11 w-11 mx-auto' : 'px-4 py-3'
+                  } ${isActive
                     ? 'bg-primary text-white border-primary shadow-none translate-x-[1px] translate-y-[1px]'
                     : 'bg-white text-primary border-primary shadow-[2px_2px_0px_0px_rgba(0,50,45,1)] hover:bg-surface-container-low hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none'
-                }`}
+                  }`}
               >
                 <item.icon size={16} className="shrink-0" />
                 {!isCollapsed && <span>{item.name}</span>}
