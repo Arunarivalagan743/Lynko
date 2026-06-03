@@ -20,6 +20,7 @@ const BulkUpload = lazyWithPreload(() => import('../pages/BulkUpload.jsx'))
 const PublicStats = lazyWithPreload(() => import('../pages/PublicStats.jsx'))
 const Analytics = lazyWithPreload(() => import('../pages/Analytics.jsx'))
 const EngagementDashboard = lazyWithPreload(() => import('../pages/EngagementDashboard.jsx'))
+const NotFound = lazyWithPreload(() => import('../pages/NotFound.jsx'))
 
 const routePreloaders = {
   [PATHS.HOME]: () => Home.preload(),
@@ -123,5 +124,11 @@ export const routesConfig = [
     path: PATHS.ENGAGEMENT,
     element: <EngagementDashboard />,
     isProtected: true,
+  },
+  {
+    path: '*',
+    element: <NotFound />,
+    isProtected: false,
+    isPublicOnly: false,
   },
 ]

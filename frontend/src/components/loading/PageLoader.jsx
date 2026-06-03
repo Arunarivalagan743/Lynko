@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import EarthLoader from './EarthLoader.jsx'
 
 export default function PageLoader({ message = 'Loading application assets...' }) {
   return (
@@ -10,17 +11,7 @@ export default function PageLoader({ message = 'Loading application assets...' }
         transition={{ duration: 0.3 }}
         className="flex flex-col items-center gap-5 text-center"
       >
-        {/* Modern circular spin ring */}
-        <div className="relative flex items-center justify-center h-10 w-10">
-          <div className="absolute inset-0 rounded-full border-2 border-primary/10" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin" />
-        </div>
-
-        {message && (
-          <p className="font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-primary/60 animate-pulse max-w-xs leading-relaxed">
-            {message}
-          </p>
-        )}
+        <EarthLoader message={message} />
       </motion.div>
     </div>
   )

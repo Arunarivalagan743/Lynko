@@ -23,6 +23,8 @@ import {
   BarChart3,
 } from 'lucide-react'
 import Card from '../components/ui/Card.jsx'
+import engageImg from '../assets/engagejsx.png'
+import noDataImg from '../assets/nodata.png'
 import Button from '../components/ui/Button.jsx'
 import { useEngagementAnalytics } from '../hooks/useEngagementAnalytics.js'
 import { useUrls } from '../hooks/useUrls.js'
@@ -61,8 +63,8 @@ const SkeletonBar = ({ w = 'w-full', h = 'h-4' }) => (
 
 /** Empty state placeholder with optional icon support */
 const EmptyState = ({ icon: Icon, message = 'No data available yet.' }) => (
-  <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border-2 border-dashed border-primary/20 bg-surface-container-low/20 w-full h-full p-6">
-    {Icon && <Icon size={36} className="text-primary/30 animate-pulse" />}
+  <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 border-2 border-dashed border-primary/20 bg-surface-container-low/20 w-full h-full p-6">
+    <img src={noDataImg} alt="" className="h-16 w-auto object-contain shadow-none" />
     <p className="label-meta max-w-xs font-semibold">{message}</p>
   </div>
 )
@@ -366,18 +368,21 @@ export default function EngagementDashboard() {
       className="space-y-8"
     >
       {/* ── Page Header ── */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-outline-variant pb-6">
         <div className="space-y-3">
           <p className="label-overline">Engagement</p>
           <h1 className="heading-page">Analytics Hub</h1>
-          <p className="text-base font-medium text-on-surface-variant">
+          <p className="text-base font-medium text-on-surface-variant max-w-2xl">
             Deep engagement metrics across all your links.
           </p>
+        </div>
+        <div className="flex-shrink-0">
+          <img src={engageImg} alt="" className="h-20 w-auto object-contain shadow-none" />
         </div>
       </div>
 
       {/* ── ROW 1: Traffic Quality + Top Links ── */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
@@ -396,7 +401,7 @@ export default function EngagementDashboard() {
             </div>
           ) : topLinks.length === 0 ? (
             <EmptyState icon={TrendingUp} message="No links found. Create your first short link to see it here." />
-                    ) : (
+          ) : (
             <div className="space-y-4">
               {/* Desktop/Tablet Table */}
               <div className="hidden md:block overflow-x-auto border-2 border-primary rounded-none bg-white">
@@ -434,8 +439,8 @@ export default function EngagementDashboard() {
                             <button
                               onClick={() => setSelectedUrlId(link.urlId)}
                               className={`rounded-none border-2 border-primary px-3 py-1 font-space text-[10px] font-bold uppercase transition-all duration-fast ${isSelected
-                                  ? 'bg-primary text-white shadow-none translate-x-[1px] translate-y-[1px]'
-                                  : 'bg-white text-primary shadow-brutal-xs hover:bg-surface-container-low active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
+                                ? 'bg-primary text-white shadow-none translate-x-[1px] translate-y-[1px]'
+                                : 'bg-white text-primary shadow-brutal-xs hover:bg-surface-container-low active:translate-x-[1px] active:translate-y-[1px] active:shadow-none'
                                 }`}
                             >
                               {isSelected ? 'Selected' : 'Select'}
@@ -503,105 +508,105 @@ export default function EngagementDashboard() {
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         <Card className="space-y-0" shadowSize="md">
-        <div className="flex items-center justify-between border-b-2 border-primary pb-3 mb-5">
-          <div className="flex items-center gap-2">
-            <Activity size={18} className="text-primary" />
-            <h2 className="heading-section">Live Activity Feed</h2>
+          <div className="flex items-center justify-between border-b-2 border-primary pb-3 mb-5">
+            <div className="flex items-center gap-2">
+              <Activity size={18} className="text-primary" />
+              <h2 className="heading-section">Live Activity Feed</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
+              <span className="font-space text-[10px] font-bold uppercase text-secondary">Live</span>
+              <button
+                onClick={() => fetchActivity()}
+                className="ml-2 rounded-none border-2 border-primary bg-white p-1.5 text-primary shadow-brutal-xs hover:bg-surface-container-low active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all duration-fast"
+                title="Refresh activity"
+              >
+                <RefreshCw size={13} />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
-            <span className="font-space text-[10px] font-bold uppercase text-secondary">Live</span>
-            <button
-              onClick={() => fetchActivity()}
-              className="ml-2 rounded-none border-2 border-primary bg-white p-1.5 text-primary shadow-brutal-xs hover:bg-surface-container-low active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all duration-fast"
-              title="Refresh activity"
-            >
-              <RefreshCw size={13} />
-            </button>
-          </div>
-        </div>
 
-        {activityLoading ? (
-          <div className="space-y-3">
-            {[...Array(6)].map((_, i) => <SkeletonBar key={i} h="h-12" />)}
-          </div>
-        ) : activity.length === 0 ? (
-          <EmptyState icon={Activity} message="No recent activity recorded across your links." />
-        ) : (
-          <div className="space-y-4">
-            {/* Desktop/Tablet Table */}
-            <div className="hidden md:block overflow-x-auto border-2 border-primary rounded-none bg-white">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead>
-                  <tr className="bg-surface-container-low border-b-2 border-primary">
-                    {['Link', 'Browser', 'Device', 'Country', 'Time'].map((h) => (
-                      <th key={h} className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">{h}</th>
+          {activityLoading ? (
+            <div className="space-y-3">
+              {[...Array(6)].map((_, i) => <SkeletonBar key={i} h="h-12" />)}
+            </div>
+          ) : activity.length === 0 ? (
+            <EmptyState icon={Activity} message="No recent activity recorded across your links." />
+          ) : (
+            <div className="space-y-4">
+              {/* Desktop/Tablet Table */}
+              <div className="hidden md:block overflow-x-auto border-2 border-primary rounded-none bg-white">
+                <table className="w-full text-sm text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-container-low border-b-2 border-primary">
+                      {['Link', 'Browser', 'Device', 'Country', 'Time'].map((h) => (
+                        <th key={h} className="p-3.5 font-space text-[11px] font-bold uppercase text-primary">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-primary/10">
+                    {activity.map((a, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/30'}>
+                        <td className="p-3.5 font-anton text-sm text-secondary">
+                          /{a.shortCode}
+                        </td>
+                        <td className="p-3.5 text-primary font-semibold capitalize">{a.browser}</td>
+                        <td className="p-3.5 text-on-surface-variant font-semibold capitalize">{a.device}</td>
+                        <td className="p-3.5 text-on-surface-variant font-semibold">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin size={11} className="text-secondary flex-shrink-0" />
+                            {a.country}
+                          </div>
+                        </td>
+                        <td className="p-3.5 text-on-surface-variant font-space text-[11px]">
+                          {new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <br />
+                          <span className="text-[10px]">{new Date(a.timestamp).toLocaleDateString()}</span>
+                        </td>
+                      </tr>
                     ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-primary/10">
-                  {activity.map((a, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/30'}>
-                      <td className="p-3.5 font-anton text-sm text-secondary">
-                        /{a.shortCode}
-                      </td>
-                      <td className="p-3.5 text-primary font-semibold capitalize">{a.browser}</td>
-                      <td className="p-3.5 text-on-surface-variant font-semibold capitalize">{a.device}</td>
-                      <td className="p-3.5 text-on-surface-variant font-semibold">
-                        <div className="flex items-center gap-1.5">
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards Stack */}
+              <div className="block md:hidden space-y-4">
+                {activity.map((a, idx) => (
+                  <Card key={idx} className="p-4 space-y-2.5" shadowSize="sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-anton text-sm text-secondary">/{a.shortCode}</span>
+                      <span className="font-space text-[10px] text-on-surface-variant/80">
+                        {new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{' '}
+                        {new Date(a.timestamp).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs border-t border-primary/10 pt-2.5">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Browser</p>
+                        <p className="font-semibold text-primary capitalize mt-0.5">{a.browser}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Device</p>
+                        <p className="font-semibold text-on-surface-variant capitalize mt-0.5">{a.device}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Country</p>
+                        <p className="font-semibold text-on-surface-variant mt-0.5 truncate flex items-center gap-1">
                           <MapPin size={11} className="text-secondary flex-shrink-0" />
                           {a.country}
-                        </div>
-                      </td>
-                      <td className="p-3.5 text-on-surface-variant font-space text-[11px]">
-                        {new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        <br />
-                        <span className="text-[10px]">{new Date(a.timestamp).toLocaleDateString()}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             </div>
-
-            {/* Mobile Cards Stack */}
-            <div className="block md:hidden space-y-4">
-              {activity.map((a, idx) => (
-                <Card key={idx} className="p-4 space-y-2.5" shadowSize="sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-anton text-sm text-secondary">/{a.shortCode}</span>
-                    <span className="font-space text-[10px] text-on-surface-variant/80">
-                      {new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{' '}
-                      {new Date(a.timestamp).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-xs border-t border-primary/10 pt-2.5">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Browser</p>
-                      <p className="font-semibold text-primary capitalize mt-0.5">{a.browser}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Device</p>
-                      <p className="font-semibold text-on-surface-variant capitalize mt-0.5">{a.device}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Country</p>
-                      <p className="font-semibold text-on-surface-variant mt-0.5 truncate flex items-center gap-1">
-                        <MapPin size={11} className="text-secondary flex-shrink-0" />
-                        {a.country}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-      </Card>
+          )}
+        </Card>
       </motion.div>
 
       {/* ── Link analyzer details breakdown (scoped to active selection) ── */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}

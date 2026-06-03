@@ -6,6 +6,8 @@ import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import PageLoader from '../components/loading/PageLoader.jsx'
 import toast from 'react-hot-toast'
+import publicImg from '../assets/publicjsx.png'
+import publicNoDataImg from '../assets/nodata.png'
 import { 
   TrendingUp, 
   BarChart2, 
@@ -97,6 +99,9 @@ export default function PublicStatsPage() {
         transition={{ duration: 0.3 }}
         className="max-w-md mx-auto py-12 px-4 space-y-6"
       >
+        <div className="flex justify-center">
+          <img src={publicImg} alt="" className="h-32 w-auto object-contain shadow-none" />
+        </div>
         <Card className="space-y-6 text-center" shadowSize="md">
           <div className="space-y-2">
             <div className="mx-auto h-12 w-12 rounded-none border-2 border-primary bg-surface-container-low flex items-center justify-center text-primary">
@@ -149,21 +154,26 @@ export default function PublicStatsPage() {
       className="space-y-6"
     >
       {/* Top Header Control Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={() => navigate('/stats')}
-            variant="secondary"
-            className="h-10 w-10 p-0"
-            title="Search another code"
-          >
-            <ArrowLeft size={16} />
-          </Button>
-          <div className="space-y-0.5">
-            <h1 className="text-xl font-anton tracking-wider text-primary uppercase">Link Public Statistics</h1>
-            <p className="text-sm text-on-surface-variant font-medium">
-              Viewing traffic data for short code: <strong className="text-secondary font-bold font-space">/{shortCode}</strong>
-            </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-outline-variant pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => navigate('/stats')}
+              variant="secondary"
+              className="h-10 w-10 p-0"
+              title="Search another code"
+            >
+              <ArrowLeft size={16} />
+            </Button>
+            <div className="space-y-0.5">
+              <h1 className="text-xl font-anton tracking-wider text-primary uppercase">Link Public Statistics</h1>
+              <p className="text-sm text-on-surface-variant font-medium">
+                Viewing traffic data for short code: <strong className="text-secondary font-bold font-space">/{shortCode}</strong>
+              </p>
+            </div>
+          </div>
+          <div className="flex-shrink-0 hidden md:block">
+            <img src={publicImg} alt="" className="h-16 w-auto object-contain shadow-none" />
           </div>
         </div>
 
@@ -389,8 +399,9 @@ export default function PublicStatsPage() {
                         </PieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
-                        No browser clicks recorded
+                      <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-8 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20 flex flex-col items-center justify-center space-y-2 w-full h-full">
+                        <img src={publicImg} alt="" className="h-10 w-auto object-contain shadow-none" />
+                        <span>No browser clicks recorded</span>
                       </div>
                     )}
                   </div>
@@ -441,8 +452,9 @@ export default function PublicStatsPage() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
-                        No device clicks recorded
+                      <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-8 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20 flex flex-col items-center justify-center space-y-2 w-full h-full">
+                        <img src={publicImg} alt="" className="h-10 w-auto object-contain shadow-none" />
+                        <span>No device clicks recorded</span>
                       </div>
                     )}
                   </div>
@@ -499,8 +511,9 @@ export default function PublicStatsPage() {
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-12 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20">
-                        No click history logged
+                      <div className="font-space text-xs font-semibold text-on-surface-variant text-center py-8 select-none border-2 border-dashed border-primary/10 bg-surface-container-low/20 flex flex-col items-center justify-center space-y-2 w-full h-full">
+                        <img src={publicImg} alt="" className="h-10 w-auto object-contain shadow-none" />
+                        <span>No click history logged</span>
                       </div>
                     )}
                   </div>

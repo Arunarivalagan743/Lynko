@@ -5,6 +5,7 @@ import { useSocket } from '../context/SocketContext.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import { ENV } from '../constants/env.js'
+import bulkImg from '../assets/bulkjsx.png'
 import { 
   UploadCloud, 
   FileText, 
@@ -100,12 +101,17 @@ export default function BulkUploadPage() {
       className="space-y-8"
     >
       {/* Page Header */}
-      <div className="space-y-3">
-        <p className="label-overline">Import</p>
-        <h1 className="heading-page">Bulk Upload Links</h1>
-        <p className="text-base font-medium text-on-surface-variant">
-          Shorten multiple destination URLs at once using a CSV data sheet.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-outline-variant pb-6">
+        <div className="space-y-3">
+          <p className="label-overline">Import</p>
+          <h1 className="heading-page">Bulk Upload Links</h1>
+          <p className="text-base font-medium text-on-surface-variant max-w-2xl">
+            Shorten multiple destination URLs at once using a CSV data sheet.
+          </p>
+        </div>
+        <div className="flex-shrink-0">
+          <img src={bulkImg} alt="" className="h-20 w-auto object-contain shadow-none" />
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_2fr]">

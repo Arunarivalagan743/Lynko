@@ -33,8 +33,8 @@ const Logo = ({ variant = 'full', size = 'md', theme = 'color', className = '' }
       >
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-            <stop offset="0%"   stopColor="#4f46e5" />
-            <stop offset="100%" stopColor="#7c3aed" />
+            <stop offset="0%"   stopColor="#00322d" />
+            <stop offset="100%" stopColor="#2c6956" />
           </linearGradient>
         </defs>
 

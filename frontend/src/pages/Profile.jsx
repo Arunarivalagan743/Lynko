@@ -8,6 +8,7 @@ import Input from '../components/ui/Input.jsx'
 import FieldMessage from '../components/ui/FieldMessage.jsx'
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx'
 import PageLoader from '../components/loading/PageLoader.jsx'
+import profileImg from '../assets/profilejsx.png'
 import {
   User as UserIcon,
   Mail,
@@ -205,14 +206,19 @@ export default function SettingsPage() {
       className="space-y-6 max-w-2xl mx-auto py-6"
     >
       {/* Page Header */}
-      <div className="space-y-1">
-        <h1 className="text-xl font-anton tracking-wider text-primary uppercase flex items-center gap-2">
-          <Settings size={20} className="text-primary" />
-          Account Settings
-        </h1>
-        <p className="text-sm font-medium text-on-surface-variant">
-          Manage your personal workspace preferences and authentication.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 border-b border-outline-variant pb-6">
+        <div className="space-y-1">
+          <h1 className="text-xl font-anton tracking-wider text-primary uppercase flex items-center gap-2">
+            <Settings size={20} className="text-primary" />
+            Account Settings
+          </h1>
+          <p className="text-sm font-medium text-on-surface-variant">
+            Manage your personal workspace preferences and authentication.
+          </p>
+        </div>
+        <div className="flex-shrink-0">
+          <img src={profileImg} alt="" className="h-16 w-auto object-contain shadow-none" />
+        </div>
       </div>
 
       {/* Error State Banner */}

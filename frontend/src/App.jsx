@@ -44,9 +44,6 @@ const App = () => {
               ))}
             </Route>
           </Route>
-
-          {/* Safe fallback for unmatched routes */}
-          <Route path="*" element={<Navigate to={PATHS.HOME} replace />} />
         </Routes>
       </Suspense>
       <Toaster

@@ -26,6 +26,8 @@ import { useSocket } from '../context/SocketContext.jsx'
 import { createUrlSchema } from '../schemas/urlSchemas.js'
 import { ENV } from '../constants/env.js'
 import toast from 'react-hot-toast'
+import dashboardImg from '../assets/dashboardjsx.png'
+import dashboardNoDataImg from '../assets/dashbardnodata.png'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -153,12 +155,17 @@ const Dashboard = () => {
       className="space-y-8"
     >
       {/* Page Header */}
-      <div className="space-y-3">
-        <p className="label-overline">Workspace</p>
-        <h1 className="heading-page">Link Workspace</h1>
-        <p className="text-base font-medium text-on-surface-variant">
-          Shorten, track, and organize your digital trails with paper-thin precision.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-outline-variant pb-6">
+        <div className="space-y-3">
+          <p className="label-overline">Workspace</p>
+          <h1 className="heading-page">Link Workspace</h1>
+          <p className="text-base font-medium text-on-surface-variant max-w-2xl">
+            Shorten, track, and organize your digital trails with paper-thin precision.
+          </p>
+        </div>
+        <div className="flex-shrink-0">
+          <img src={dashboardImg} alt="" className="h-20 w-auto object-contain shadow-none" />
+        </div>
       </div>
 
       {/* Dynamic Colored Stat Cards */}
@@ -262,25 +269,31 @@ const Dashboard = () => {
             </div>
 
             <form onSubmit={handleSubmit(onQuickShortenSubmit)} className="space-y-5">
-              <div className="grid gap-5 md:grid-cols-[2.5fr_1.3fr_1.2fr]">
-                <Input
-                  label="Destination URL"
-                  placeholder="https://your-long-link.com/really-long-path"
-                  error={errors.originalUrl?.message}
-                  {...register('originalUrl')}
-                />
-                <Input
-                  label="Custom Alias (Optional)"
-                  placeholder="alias"
-                  error={errors.customAlias?.message}
-                  {...register('customAlias')}
-                />
-                <Input
-                  label="Expiration Date (Optional)"
-                  type="date"
-                  error={errors.expiresAt?.message}
-                  {...register('expiresAt')}
-                />
+              <div className="grid gap-5 grid-cols-1 sm:grid-cols-6 lg:grid-cols-12">
+                <div className="sm:col-span-6 lg:col-span-6">
+                  <Input
+                    label="Destination URL"
+                    placeholder="https://your-long-link.com/really-long-path"
+                    error={errors.originalUrl?.message}
+                    {...register('originalUrl')}
+                  />
+                </div>
+                <div className="sm:col-span-3 lg:col-span-3">
+                  <Input
+                    label="Custom Alias (Optional)"
+                    placeholder="alias"
+                    error={errors.customAlias?.message}
+                    {...register('customAlias')}
+                  />
+                </div>
+                <div className="sm:col-span-3 lg:col-span-3">
+                  <Input
+                    label="Expiration Date (Optional)"
+                    type="date"
+                    error={errors.expiresAt?.message}
+                    {...register('expiresAt')}
+                  />
+                </div>
               </div>
 
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-2">
@@ -316,8 +329,9 @@ const Dashboard = () => {
                 Loading links list...
               </div>
             ) : recentLinks.length === 0 ? (
-              <div className="py-16 text-center border border-dashed border-primary bg-surface-container-low code-label rounded-lg">
-                No shortened links found. Shorten your first link above!
+              <div className="py-12 flex flex-col items-center justify-center text-center border border-dashed border-primary bg-surface-container-low rounded-lg space-y-4">
+                <img src={dashboardNoDataImg} alt="" className="h-16 w-auto object-contain shadow-none" />
+                <p className="code-label">No shortened links found. Shorten your first link above!</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -527,27 +541,6 @@ const Dashboard = () => {
             </div>
           </Card>
 
-          {/* Upgrade Call to Action */}
-          <Card className="!bg-primary text-white space-y-5 border-2 border-primary" shadowSize="md">
-            <div className="space-y-2">
-              <h3 className="text-xl font-anton uppercase tracking-wide leading-none text-white">
-                Run Out Of Paper?
-              </h3>
-              <p className="text-sm text-surface-container-low font-medium leading-relaxed">
-                Get unlimited short links, team permission controls, and API access with the Master Scribe plan.
-              </p>
-            </div>
-
-            <Button
-              as="a"
-              href="#pricing"
-              variant="secondary"
-              size="lg"
-              className="w-full !bg-white !text-primary !border-primary text-center"
-            >
-              Upgrade Now
-            </Button>
-          </Card>
         </motion.div>
       </div>
     </motion.div>

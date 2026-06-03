@@ -10,6 +10,7 @@ import Input from '../../components/ui/Input.jsx'
 import PasswordInput from '../../components/ui/PasswordInput.jsx'
 import { signupSchema } from '../../schemas/authSchemas.js'
 import { useAuth } from '../../context/AuthContext.jsx'
+import signupImg from '../../assets/signupjsx.png'
 
 const Signup = () => {
   const [apiError, setApiError] = useState('')
@@ -45,6 +46,7 @@ const Signup = () => {
     <AuthShell
       title="Create your workspace"
       subtitle="Start shortening links with enterprise-grade analytics in minutes."
+      illustration={signupImg}
       footer={
         <span>
           Already have an account?{' '}
@@ -80,9 +82,6 @@ const Signup = () => {
           Create account
         </Button>
       </form>
-      <p className="text-xs text-text-muted">
-        By continuing, you agree to Lynko's Terms and acknowledge the Privacy Policy.
-      </p>
     </AuthShell>
   )
 }

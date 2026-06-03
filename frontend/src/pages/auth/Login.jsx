@@ -5,12 +5,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
 import AuthShell from '../../components/layout/AuthShell.jsx'
 import Button from '../../components/ui/Button.jsx'
-import Divider from '../../components/ui/Divider.jsx'
 import FieldMessage from '../../components/ui/FieldMessage.jsx'
 import Input from '../../components/ui/Input.jsx'
 import PasswordInput from '../../components/ui/PasswordInput.jsx'
 import { loginSchema } from '../../schemas/authSchemas.js'
 import { useAuth } from '../../context/AuthContext.jsx'
+import loginImg from '../../assets/loginjsx.png'
 
 const Login = () => {
   const [apiError, setApiError] = useState('')
@@ -45,6 +45,7 @@ const Login = () => {
     <AuthShell
       title="Welcome back"
       subtitle="Sign in to manage short links, analytics, and team access."
+      illustration={loginImg}
       footer={
         <span>
           New to Lynko?{' '}
@@ -78,10 +79,6 @@ const Login = () => {
           Sign in
         </Button>
       </form>
-      <Divider label="Secure access" />
-      <p className="text-xs text-text-muted">
-        Protected by industry-standard hashing and rotating refresh tokens.
-      </p>
     </AuthShell>
   )
 }

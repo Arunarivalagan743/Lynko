@@ -23,6 +23,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useUrls } from '../hooks/useUrls.js'
 import { useSocket } from '../context/SocketContext.jsx'
 import { createUrlSchema, updateUrlSchema } from '../schemas/urlSchemas.js'
+import urlImg from '../assets/urljsx.png'
+import urlsNoDataImg from '../assets/somnodata.png'
 import { ENV } from '../constants/env.js'
 import Card from '../components/ui/Card.jsx'
 import Input from '../components/ui/Input.jsx'
@@ -260,10 +262,15 @@ export default function UrlsPage() {
       className="space-y-8"
     >
       {/* Page Header */}
-      <div className="space-y-3">
-        <p className="label-overline">Manage</p>
-        <h1 className="heading-page">Link Management</h1>
-        <p className="text-base font-medium text-on-surface-variant">Shorten, update, delete, or analyze link details.</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-outline-variant pb-6">
+        <div className="space-y-3">
+          <p className="label-overline">Manage</p>
+          <h1 className="heading-page">Link Management</h1>
+          <p className="text-base font-medium text-on-surface-variant">Shorten, update, delete, or analyze link details.</p>
+        </div>
+        <div className="flex-shrink-0">
+          <img src={urlImg} alt="" className="h-20 w-auto object-contain shadow-none" />
+        </div>
       </div>
 
       {error && <FieldMessage tone="error">{error}</FieldMessage>}
@@ -571,13 +578,16 @@ export default function UrlsPage() {
               </div>
             </div>
           ) : filteredUrls.length === 0 ? (
-            <div className="flex h-60 flex-col items-center justify-center text-center p-8 border-2 border-dashed border-primary rounded-none bg-surface-container-low space-y-3 font-space">
-              <p className="text-sm font-bold text-primary uppercase">No shortened URLs found</p>
-              <p className="text-xs text-on-surface-variant max-w-xs font-medium">
-                {searchQuery
-                  ? "We couldn't find any links matching your search filters."
-                  : 'Start by inputting a destination URL in the creator panel to shorten your first link.'}
-              </p>
+            <div className="flex h-60 flex-col items-center justify-center text-center p-8 border-2 border-dashed border-primary rounded-none bg-surface-container-low space-y-4 font-space">
+              <img src={urlsNoDataImg} alt="" className="h-16 w-auto object-contain shadow-none" />
+              <div>
+                <p className="text-sm font-bold text-primary uppercase">No shortened URLs found</p>
+                <p className="text-xs text-on-surface-variant max-w-xs font-medium mx-auto mt-1">
+                  {searchQuery
+                    ? "We couldn't find any links matching your search filters."
+                    : 'Start by inputting a destination URL in the creator panel to shorten your first link.'}
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-5 lg:max-h-[75vh] lg:overflow-y-auto pr-1">

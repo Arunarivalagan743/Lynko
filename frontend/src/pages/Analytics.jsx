@@ -10,6 +10,8 @@ import SkeletonTable from '../components/loading/SkeletonTable.jsx'
 import VisitorMap from '../components/VisitorMap.jsx'
 import { ENV } from '../constants/env.js'
 import clsx from 'clsx'
+import analyticsImg from '../assets/analyticsjsx.png'
+import analyticsNoDataImg from '../assets/analatysnodata.png'
 import { motion } from 'framer-motion'
 import {
   Calendar,
@@ -187,15 +189,20 @@ export default function AnalyticsPage() {
       className="space-y-8"
     >
       {/* Top Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-        <div className="space-y-3">
-          <p className="label-overline">Insights</p>
-          <h1 className="heading-page">Link Analytics</h1>
-          <p className="text-base text-on-surface-variant font-medium">
-            {currentUrl
-              ? `Performance data for: ${currentUrl.shortCode}`
-              : 'Select a link to analyze its traffic metrics.'}
-          </p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-outline-variant pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+          <div className="space-y-3">
+            <p className="label-overline">Insights</p>
+            <h1 className="heading-page">Link Analytics</h1>
+            <p className="text-base text-on-surface-variant font-medium">
+              {currentUrl
+                ? `Performance data for: ${currentUrl.shortCode}`
+                : 'Select a link to analyze its traffic metrics.'}
+            </p>
+          </div>
+          <div className="flex-shrink-0 hidden sm:block">
+            <img src={analyticsImg} alt="" className="h-20 w-auto object-contain shadow-none" />
+          </div>
         </div>
 
         {/* URL Selector Dropdown */}
@@ -220,7 +227,7 @@ export default function AnalyticsPage() {
       {/* If no URL ID selected, render empty state selection guide */}
       {!id ? (
         <Card className="flex flex-col items-center justify-center text-center !p-16 min-h-[40vh] space-y-5">
-          <TrendingUp size={52} className="text-primary animate-pulse" />
+          <img src={analyticsNoDataImg} alt="" className="h-24 w-auto object-contain shadow-none" />
           <div className="space-y-3">
             <h2 className="heading-section">No URL Selected</h2>
             <p className="text-base text-on-surface-variant font-medium max-w-md mx-auto">
@@ -421,8 +428,8 @@ export default function AnalyticsPage() {
                           </PieChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex flex-col items-center justify-center w-full h-full py-16 text-center space-y-2 border-2 border-dashed border-primary/20 bg-surface-container-low/20">
-                          <Monitor size={32} className="text-primary/30" />
+                        <div className="flex flex-col items-center justify-center w-full h-full py-16 text-center space-y-3 border-2 border-dashed border-primary/20 bg-surface-container-low/20">
+                          <img src={analyticsNoDataImg} alt="" className="h-12 w-auto object-contain shadow-none" />
                           <p className="label-meta select-none">No browser clicks recorded</p>
                         </div>
                       )}
@@ -482,8 +489,8 @@ export default function AnalyticsPage() {
                           </BarChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex flex-col items-center justify-center w-full h-full py-16 text-center space-y-2 border border-dashed border-primary/20 bg-surface-container-low/20 rounded-lg">
-                          <Monitor size={32} className="text-primary/30" />
+                        <div className="flex flex-col items-center justify-center w-full h-full py-16 text-center space-y-3 border border-dashed border-primary/20 bg-surface-container-low/20 rounded-lg">
+                          <img src={analyticsNoDataImg} alt="" className="h-12 w-auto object-contain shadow-none" />
                           <p className="label-meta select-none">No device clicks recorded</p>
                         </div>
                       )}
@@ -543,8 +550,8 @@ export default function AnalyticsPage() {
                           </LineChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex flex-col items-center justify-center w-full h-full py-16 text-center space-y-2 border border-dashed border-primary/20 bg-surface-container-low/20 rounded-lg">
-                          <TrendingUp size={32} className="text-primary/30" />
+                        <div className="flex flex-col items-center justify-center w-full h-full py-16 text-center space-y-3 border border-dashed border-primary/20 bg-surface-container-low/20 rounded-lg">
+                          <img src={analyticsNoDataImg} alt="" className="h-12 w-auto object-contain shadow-none" />
                           <p className="label-meta select-none">No click history logged</p>
                         </div>
                       )}
@@ -596,7 +603,7 @@ export default function AnalyticsPage() {
                 <SkeletonTable variant="visits" rowsCount={5} />
               ) : visits.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border border-dashed border-primary/20 bg-surface-container-low/20 rounded-lg">
-                  <Globe size={36} className="text-primary/30 animate-pulse" />
+                  <img src={analyticsNoDataImg} alt="" className="h-12 w-auto object-contain shadow-none" />
                   <p className="label-meta">
                     No redirection activity logs recorded for this link yet.
                   </p>
