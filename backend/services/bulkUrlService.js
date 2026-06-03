@@ -97,6 +97,21 @@ const createBulkUrls = async ({ ownerId, rows, fileSizeBytes, baseUrl }) => {
         },
       });
     }
+
+    // Emit progress: every 10 rows, or at the very end of the batch
+    const processed = index + 1;
+    if (processed % 10 === 0 || processed === rows.length) {
+      try {
+        const { emitToUser } = require("../utils/socket");
+        emitToUser(ownerId, "bulkProgress", {
+          type: "bulkProgress",
+          processed,
+          total: rows.length,
+        });
+      } catch (err) {
+        console.error("Failed to emit bulkProgress socket event:", err);
+      }
+    }
   }
 
   return {

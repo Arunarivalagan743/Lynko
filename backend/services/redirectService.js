@@ -354,6 +354,43 @@ const handleRedirect = async (shortCode, req) => {
   const visit = await createVisitRecord(url, metadata);
   await incrementClickCount(url._id);
 
+  // Asynchronous WebSocket events dispatch
+  setImmediate(async () => {
+    try {
+      const { emitToUser } = require("../utils/socket");
+      const { getTrafficQuality } = require("./analyticsEngagementService");
+
+      // 1. Emit click event
+      emitToUser(url.ownerId, "click", {
+        type: "click",
+        urlId: url._id,
+        shortCode: url.shortCode,
+        totalClicks: (url.clickCount || 0) + 1,
+      });
+
+      // 2. Emit visit event
+      emitToUser(url.ownerId, "visit", {
+        type: "visit",
+        shortCode: url.shortCode,
+        browser: visit.browser || "unknown",
+        device: visit.device || "unknown",
+        country: visit.country || "Unknown",
+        timestamp: visit.timestamp,
+      });
+
+      // 3. Emit trafficQuality event
+      const qualityData = await getTrafficQuality(url.ownerId);
+      emitToUser(url.ownerId, "trafficQuality", {
+        type: "trafficQuality",
+        human: qualityData.human,
+        bot: qualityData.bot,
+        suspicious: qualityData.suspicious,
+      });
+    } catch (err) {
+      console.error("Failed to broadcast real-time redirect events:", err);
+    }
+  });
+
   console.log({
     ip: metadata.ipAddress,
     forwardedFor: req.headers["x-forwarded-for"],
