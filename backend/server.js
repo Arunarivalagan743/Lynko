@@ -2,8 +2,12 @@ const http = require("http");
 const { app } = require("./app");
 const { connectDb } = require("./config/db");
 const { env } = require("./config/env");
+const { initSocket } = require("./utils/socket");
 
 const server = http.createServer(app);
+
+// Initialize Socket.IO
+initSocket(server);
 
 const start = async () => {
   await connectDb();
