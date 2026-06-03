@@ -26,7 +26,7 @@ const generateQrCodeDataUrl = async (shortUrl) => {
   return QRCode.toDataURL(shortUrl, { errorCorrectionLevel: "M" });
 };
 
-const createShortUrl = async ({ ownerId, originalUrl, customAlias, expiresAt, baseUrl }) => {
+const createShortUrl = async ({ ownerId, originalUrl, customAlias, expiresAt, baseUrl, platforms = [] }) => {
   if (!ownerId) {
     throw new AppError("Unauthorized", 401);
   }
@@ -51,11 +51,16 @@ const createShortUrl = async ({ ownerId, originalUrl, customAlias, expiresAt, ba
       originalUrl,
       shortCode: customAlias,
       expiresAt: expiresAt || null,
+      platforms: platforms || [],
     });
     const shortUrl = buildShortUrl(baseUrl, url.shortCode);
     const qrCodeDataUrl = await generateQrCodeDataUrl(shortUrl);
+    const platformLinks = (platforms || []).map((p) => ({
+      platform: p,
+      shortUrl: `${shortUrl}?src=${p}`,
+    }));
 
-    return { url, qrCodeDataUrl };
+    return { url, qrCodeDataUrl, platformLinks };
   }
 
   for (let attempt = 0; attempt < MAX_COLLISION_RETRIES; attempt += 1) {
@@ -67,11 +72,16 @@ const createShortUrl = async ({ ownerId, originalUrl, customAlias, expiresAt, ba
         originalUrl,
         shortCode,
         expiresAt: expiresAt || null,
+        platforms: platforms || [],
       });
       const shortUrl = buildShortUrl(baseUrl, url.shortCode);
       const qrCodeDataUrl = await generateQrCodeDataUrl(shortUrl);
+      const platformLinks = (platforms || []).map((p) => ({
+        platform: p,
+        shortUrl: `${shortUrl}?src=${p}`,
+      }));
 
-      return { url, qrCodeDataUrl };
+      return { url, qrCodeDataUrl, platformLinks };
     } catch (err) {
       if (err && err.code === 11000) {
         continue;
@@ -122,7 +132,7 @@ const updateUrlById = async (ownerId, urlId, updates) => {
     throw new AppError("Unauthorized", 401);
   }
 
-  if (!updates || (!updates.originalUrl && !updates.expiresAt)) {
+  if (!updates || (!updates.originalUrl && !updates.expiresAt && !updates.platforms)) {
     throw new AppError("No updates provided", 400);
   }
 

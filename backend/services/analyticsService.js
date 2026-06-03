@@ -115,7 +115,7 @@ const getRecentVisits = async (ownerId, urlId, options = {}) => {
     .sort({ timestamp: -1 })
     .skip(skip)
     .limit(limit)
-    .select("timestamp browser device country referrer")
+    .select("timestamp browser device country referrer clickQuality ipAddress")
     .lean();
 };
 
@@ -170,6 +170,27 @@ const getDeviceAnalytics = async (ownerId, urlId, options = {}) => {
   return result;
 };
 
+const getCountryAnalytics = async (ownerId, urlId, options = {}) => {
+  const url = await assertUrlAccess(ownerId, urlId);
+  const match = { urlId: url._id, ...buildTimestampMatch(options) };
+
+  const rows = await Visit.aggregate([
+    { $match: match },
+    {
+      $group: {
+        _id: { $ifNull: ["$country", "Unknown"] },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { count: -1 } },
+  ]);
+
+  return rows.map((row) => ({
+    country: row._id || "Unknown",
+    count: row.count,
+  }));
+};
+
 const getDailyTrends = async (ownerId, urlId, options = {}) => {
   const url = await assertUrlAccess(ownerId, urlId);
   const match = { urlId: url._id, ...buildTimestampMatch(options) };
@@ -198,5 +219,6 @@ module.exports = {
   getRecentVisits,
   getBrowserAnalytics,
   getDeviceAnalytics,
+  getCountryAnalytics,
   getDailyTrends,
 };

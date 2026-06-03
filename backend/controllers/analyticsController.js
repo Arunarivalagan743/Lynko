@@ -3,6 +3,7 @@ const {
   getRecentVisits,
   getBrowserAnalytics,
   getDeviceAnalytics,
+  getCountryAnalytics,
   getDailyTrends,
 } = require("../services/analyticsService");
 
@@ -67,6 +68,20 @@ const getDeviceAnalyticsHandler = async (req, res, next) => {
   }
 };
 
+const getCountryAnalyticsHandler = async (req, res, next) => {
+  try {
+    const ownerId = req.user?.id;
+    const { id } = req.params;
+    const { from, to } = req.query;
+
+    const countries = await getCountryAnalytics(ownerId, id, { from, to });
+
+    return res.status(200).json({ countries });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 const getDailyTrendsHandler = async (req, res, next) => {
   try {
     const ownerId = req.user?.id;
@@ -86,5 +101,6 @@ module.exports = {
   getRecentVisits: getRecentVisitsHandler,
   getBrowserAnalytics: getBrowserAnalyticsHandler,
   getDeviceAnalytics: getDeviceAnalyticsHandler,
+  getCountryAnalytics: getCountryAnalyticsHandler,
   getDailyTrends: getDailyTrendsHandler,
 };

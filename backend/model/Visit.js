@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const SUPPORTED_PLATFORMS = ["instagram", "linkedin", "twitter", "facebook", "whatsapp", "youtube", "telegram"];
+
 const visitSchema = new mongoose.Schema(
   {
     urlId: {
@@ -67,6 +69,12 @@ const visitSchema = new mongoose.Schema(
       enum: ["human", "bot", "suspicious"],
       default: "human",
     },
+    platform: {
+      type: String,
+      enum: [null, ...SUPPORTED_PLATFORMS],
+      default: null,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
@@ -76,6 +84,10 @@ visitSchema.index({ urlId: 1, device: 1, timestamp: -1 });
 visitSchema.index({ urlId: 1, browser: 1, timestamp: -1 });
 visitSchema.index({ urlId: 1, operatingSystem: 1, timestamp: -1 });
 visitSchema.index({ urlId: 1, createdAt: -1 });
+visitSchema.index({ urlId: 1, referrer: 1 });          // FEATURE 2: referrer analytics
+visitSchema.index({ urlId: 1, country: 1 });            // FEATURE 3: geography analytics
+visitSchema.index({ urlId: 1, clickQuality: 1 });       // FEATURE 5: traffic quality
+visitSchema.index({ urlId: 1, platform: 1 });           // Platform Tracking
 
 const Visit = mongoose.model("Visit", visitSchema);
 

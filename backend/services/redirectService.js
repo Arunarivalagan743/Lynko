@@ -1,3 +1,4 @@
+const https = require("https");
 const { Url } = require("../model/Url");
 const { Visit } = require("../model/Visit");
 const { AppError } = require("../utils/AppError");
@@ -145,6 +146,28 @@ const validateUrlExpiration = (url) => {
   }
 };
 
+const parseReferrer = (refererHeader) => {
+  if (!refererHeader) return "Direct";
+  try {
+    let urlStr = refererHeader.trim();
+    if (!/^https?:\/\//i.test(urlStr)) {
+      urlStr = `http://${urlStr}`;
+    }
+    const url = new URL(urlStr);
+    const hostname = url.hostname.toLowerCase();
+
+    if (hostname.includes("google")) return "Google";
+    if (hostname.includes("facebook") || hostname.includes("fb.com") || hostname.includes("fb.me")) return "Facebook";
+    if (hostname.includes("linkedin")) return "LinkedIn";
+    if (hostname.includes("twitter") || hostname.includes("t.co") || hostname.includes("x.com")) return "Twitter";
+    if (hostname.includes("instagram")) return "Instagram";
+
+    return "Other";
+  } catch (err) {
+    return "Other";
+  }
+};
+
 /**
  * Extract analytics metadata from an incoming request.
  * @param {object} req
@@ -152,11 +175,21 @@ const validateUrlExpiration = (url) => {
  */
 const extractVisitMetadata = (req) => {
   const userAgent = req.headers["user-agent"] || "";
-  const referrer = req.get("referer") || req.get("referrer") || null;
-  const ipAddress = req.ip || null;
+  const rawReferrer = req.get("referer") || req.get("referrer") || null;
+  const referrer = parseReferrer(rawReferrer);
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const forwardedIp = Array.isArray(forwardedFor)
+    ? forwardedFor[0]
+    : String(forwardedFor || "").split(",")[0].trim();
+  const ipAddress = forwardedIp || req.ip || req.socket?.remoteAddress || null;
   const campaign = req.query?.campaign || req.query?.utm_campaign || null;
   const botInfo = detectBot(userAgent);
   const clickQuality = classifyClick(userAgent, botInfo);
+
+  // Platform specific links tracking
+  const src = req.query?.src || null;
+  const SUPPORTED_PLATFORMS = ["instagram", "linkedin", "twitter", "facebook", "whatsapp", "youtube", "telegram"];
+  const platform = SUPPORTED_PLATFORMS.includes(src) ? src : null;
 
   return {
     timestamp: new Date(),
@@ -171,7 +204,50 @@ const extractVisitMetadata = (req) => {
     isBot: botInfo.isBot,
     botType: botInfo.botType,
     clickQuality,
+    platform,
   };
+};
+
+const fetchCountryFromIp = (ipAddress) => {
+  return new Promise((resolve) => {
+    const normalizedIp = (ipAddress || "").replace(/^::ffff:/, "").trim();
+    const isLocalhost = 
+      !normalizedIp || 
+      normalizedIp === "127.0.0.1" || 
+      normalizedIp === "::1" || 
+      normalizedIp.toLowerCase() === "localhost" || 
+      normalizedIp.includes("127.0.0.1");
+
+    if (isLocalhost) {
+      return resolve("Development");
+    }
+
+    const cleanIp = normalizedIp;
+    
+    const req = https.get(`https://ip-api.com/json/${cleanIp}?fields=country`, (res) => {
+      let data = "";
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+      res.on("end", () => {
+        try {
+          const parsed = JSON.parse(data);
+          resolve(parsed.country || "Unknown");
+        } catch (_) {
+          resolve("Unknown");
+        }
+      });
+    });
+
+    req.on("error", () => {
+      resolve("Unknown");
+    });
+
+    req.setTimeout(1000, () => {
+      req.destroy();
+      resolve("Unknown");
+    });
+  });
 };
 
 /**
@@ -181,6 +257,13 @@ const extractVisitMetadata = (req) => {
  * @returns {Promise<object>}
  */
 const createVisitRecord = async (url, metadata) => {
+  let resolvedCountry = "Unknown";
+  try {
+    resolvedCountry = await fetchCountryFromIp(metadata.ipAddress);
+  } catch (_) {
+    // Ignore error
+  }
+
   return Visit.create({
     urlId: url._id,
     timestamp: metadata.timestamp || new Date(),
@@ -188,13 +271,14 @@ const createVisitRecord = async (url, metadata) => {
     device: metadata.device,
     operatingSystem: metadata.operatingSystem,
     ipAddress: metadata.ipAddress || null,
-    country: metadata.country || null,
+    country: resolvedCountry || null,
     referrer: metadata.referrer || null,
     userAgent: metadata.userAgent || null,
     campaign: metadata.campaign || null,
     isBot: metadata.isBot || false,
     botType: metadata.botType || null,
     clickQuality: metadata.clickQuality || "human",
+    platform: metadata.platform || null,
   });
 };
 
@@ -225,8 +309,18 @@ const handleRedirect = async (shortCode, req) => {
   validateUrlExpiration(url);
 
   const metadata = extractVisitMetadata(req);
-  await createVisitRecord(url, metadata);
+  if (metadata.platform && (!url.platforms || !url.platforms.includes(metadata.platform))) {
+    metadata.platform = null;
+  }
+  const visit = await createVisitRecord(url, metadata);
   await incrementClickCount(url._id);
+
+  console.log({
+    ip: metadata.ipAddress,
+    forwardedFor: req.headers["x-forwarded-for"],
+    referer: req.headers["referer"] || req.headers["referrer"],
+    country: visit.country,
+  });
 
   return url.originalUrl;
 };

@@ -4,6 +4,7 @@ const {
   getRecentVisits,
   getBrowserAnalytics,
   getDeviceAnalytics,
+  getCountryAnalytics,
   getDailyTrends,
 } = require("../controllers/analyticsController");
 const { authenticate } = require("../middleware/authMiddleware");
@@ -47,6 +48,14 @@ router.get(
   validate(urlIdParamSchema, "params"),
   validate(analyticsSummaryQuerySchema, "query"),
   getDeviceAnalytics
+);
+
+router.get(
+  "/:id/countries",
+  authenticate,
+  validate(urlIdParamSchema, "params"),
+  validate(analyticsSummaryQuerySchema, "query"),
+  getCountryAnalytics
 );
 
 router.get(

@@ -8,18 +8,19 @@ const {
 
 const createUrl = async (req, res, next) => {
   try {
-    const { originalUrl, customAlias, expiresAt } = req.body;
+    const { originalUrl, customAlias, expiresAt, platforms } = req.body;
     const ownerId = req.user?.id;
 
-    const { url, qrCodeDataUrl } = await createShortUrl({
+    const { url, qrCodeDataUrl, platformLinks } = await createShortUrl({
       ownerId,
       originalUrl,
       customAlias,
       expiresAt,
+      platforms,
       baseUrl: `${req.protocol}://${req.get("host")}`,
     });
 
-    return res.status(201).json({ url, qrCodeDataUrl });
+    return res.status(201).json({ url, qrCodeDataUrl, platformLinks });
   } catch (err) {
     return next(err);
   }
@@ -69,11 +70,12 @@ const updateUrl = async (req, res, next) => {
   try {
     const ownerId = req.user?.id;
     const { id } = req.params;
-    const { originalUrl, expiresAt } = req.body;
+    const { originalUrl, expiresAt, platforms } = req.body;
 
     const url = await updateUrlById(ownerId, id, {
       ...(originalUrl ? { originalUrl } : {}),
-      ...(expiresAt ? { expiresAt } : {}),
+      ...(expiresAt !== undefined ? { expiresAt } : {}),
+      ...(platforms !== undefined ? { platforms } : {}),
     });
 
     return res.status(200).json({ url });
