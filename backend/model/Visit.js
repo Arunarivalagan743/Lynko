@@ -40,6 +40,24 @@ const visitSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    city: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    region: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    latitude: {
+      type: Number,
+      default: null,
+    },
+    longitude: {
+      type: Number,
+      default: null,
+    },
     referrer: {
       type: String,
       default: null,

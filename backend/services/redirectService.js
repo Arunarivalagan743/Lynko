@@ -210,40 +210,36 @@ const extractVisitMetadata = (req) => {
 const http = require("http");
 
 /**
- * Fetch country from a single GeoIP endpoint.
- * @param {string} url  - full HTTP URL to fetch JSON from
- * @param {function} extract - (parsed) => string | null
- * @param {number} timeoutMs
+ * Fetch JSON from a GeoIP HTTP endpoint.
+ * Returns the parsed object, or null on error/timeout.
  */
-const fetchFromGeoEndpoint = (url, extract, timeoutMs = 4000) => {
+const fetchFromGeoEndpoint = (url, timeoutMs = 4500) => {
   return new Promise((resolve) => {
     const req = http.get(url, (res) => {
       let data = "";
       res.on("data", (chunk) => { data += chunk; });
       res.on("end", () => {
         try {
-          const parsed = JSON.parse(data);
-          const country = extract(parsed);
-          resolve(country && country !== "Unknown" ? country : null);
+          resolve(JSON.parse(data));
         } catch (_) {
           resolve(null);
         }
       });
     });
-
     req.on("error", () => resolve(null));
-
-    req.setTimeout(timeoutMs, () => {
-      req.destroy();
-      resolve(null);
-    });
+    req.setTimeout(timeoutMs, () => { req.destroy(); resolve(null); });
   });
 };
 
-const fetchCountryFromIp = async (ipAddress) => {
-  const normalizedIp = (ipAddress || "").replace(/^::ffff:/, "").trim();
+/**
+ * Returns { country, city, region, latitude, longitude } from IP.
+ * Falls back to ipapi.co if ip-api.com fails.
+ */
+const fetchGeoData = async (ipAddress) => {
+  const empty = { country: null, city: null, region: null, latitude: null, longitude: null };
 
-  const isLocalhost =
+  const normalizedIp = (ipAddress || "").replace(/^::ffff:/, "").trim();
+  const isLocal =
     !normalizedIp ||
     normalizedIp === "127.0.0.1" ||
     normalizedIp === "::1" ||
@@ -252,30 +248,41 @@ const fetchCountryFromIp = async (ipAddress) => {
     normalizedIp.startsWith("10.") ||
     normalizedIp.startsWith("172.");
 
-  if (isLocalhost) {
-    return "Development";
+  if (isLocal) {
+    return { ...empty, country: "Development" };
   }
 
   const ip = encodeURIComponent(normalizedIp);
 
-  // Primary: ip-api.com — free, fast, no key needed (HTTP only on free tier)
-  const primary = await fetchFromGeoEndpoint(
-    `http://ip-api.com/json/${ip}?fields=status,country`,
-    (p) => (p.status === "success" ? p.country : null),
-    4000
+  // Primary: ip-api.com — returns country, city, region, lat, lon in one call (HTTP only)
+  const p = await fetchFromGeoEndpoint(
+    `http://ip-api.com/json/${ip}?fields=status,country,city,regionName,lat,lon`
   );
-  if (primary) return primary;
+  if (p && p.status === "success") {
+    return {
+      country:   p.country   || null,
+      city:      p.city      || null,
+      region:    p.regionName || null,
+      latitude:  typeof p.lat === "number" ? p.lat : null,
+      longitude: typeof p.lon === "number" ? p.lon : null,
+    };
+  }
 
-  // Fallback: ipapi.co — separate free provider
-  const fallback = await fetchFromGeoEndpoint(
-    `http://ipapi.co/${ip}/json/`,
-    (p) => p.country_name || null,
-    4000
-  );
-  if (fallback) return fallback;
+  // Fallback: ipapi.co
+  const f = await fetchFromGeoEndpoint(`http://ipapi.co/${ip}/json/`);
+  if (f && f.country_name) {
+    return {
+      country:   f.country_name  || null,
+      city:      f.city          || null,
+      region:    f.region        || null,
+      latitude:  typeof f.latitude  === "number" ? f.latitude  : null,
+      longitude: typeof f.longitude === "number" ? f.longitude : null,
+    };
+  }
 
-  return "Unknown";
+  return empty;
 };
+
 
 /**
  * Persist a Visit record for analytics.
@@ -284,11 +291,12 @@ const fetchCountryFromIp = async (ipAddress) => {
  * @returns {Promise<object>}
  */
 const createVisitRecord = async (url, metadata) => {
-  let resolvedCountry = "Unknown";
+  let geo = { country: "Unknown", city: null, region: null, latitude: null, longitude: null };
   try {
-    resolvedCountry = await fetchCountryFromIp(metadata.ipAddress);
+    geo = await fetchGeoData(metadata.ipAddress);
+    if (!geo.country) geo.country = "Unknown";
   } catch (_) {
-    // Ignore error
+    // Keep defaults on any unexpected error
   }
 
   return Visit.create({
@@ -298,7 +306,11 @@ const createVisitRecord = async (url, metadata) => {
     device: metadata.device,
     operatingSystem: metadata.operatingSystem,
     ipAddress: metadata.ipAddress || null,
-    country: resolvedCountry || null,
+    country:   geo.country   || null,
+    city:      geo.city      || null,
+    region:    geo.region    || null,
+    latitude:  geo.latitude  ?? null,
+    longitude: geo.longitude ?? null,
     referrer: metadata.referrer || null,
     userAgent: metadata.userAgent || null,
     campaign: metadata.campaign || null,
