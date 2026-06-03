@@ -2,14 +2,14 @@ import React, { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router-dom'
-import { 
-  BarChart3, 
-  AlertTriangle, 
-  Link2, 
-  Play, 
-  HelpCircle, 
-  Zap, 
-  TrendingUp, 
+import {
+  BarChart3,
+  AlertTriangle,
+  Link2,
+  Play,
+  HelpCircle,
+  Zap,
+  TrendingUp,
   Users,
   Copy,
   ArrowRight,
@@ -22,6 +22,7 @@ import Input from '../components/ui/Input.jsx'
 import Button from '../components/ui/Button.jsx'
 import { useUrls } from '../hooks/useUrls.js'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useSocket } from '../context/SocketContext.jsx'
 import { createUrlSchema } from '../schemas/urlSchemas.js'
 import { ENV } from '../constants/env.js'
 import toast from 'react-hot-toast'
@@ -38,20 +39,38 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { type: 'spring', stiffness: 260, damping: 20 } 
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 260, damping: 20 }
   }
 }
 
 const Dashboard = () => {
-  const { urls, isLoading, createLoading, fetchUrls, addUrl } = useUrls()
+  const { urls, setUrls, isLoading, createLoading, fetchUrls, addUrl } = useUrls()
   const { user } = useAuth()
+  const socket = useSocket()
 
   useEffect(() => {
     fetchUrls()
   }, [fetchUrls])
+
+  useEffect(() => {
+    if (!socket) return
+
+    const handleRealTimeClick = (data) => {
+      setUrls((prevUrls) =>
+        prevUrls.map((item) =>
+          item._id === data.urlId ? { ...item, clickCount: data.totalClicks } : item
+        )
+      )
+    }
+
+    socket.on('click', handleRealTimeClick)
+    return () => {
+      socket.off('click', handleRealTimeClick)
+    }
+  }, [socket, setUrls])
 
   // Setup Quick Shorten Form
   const {
@@ -143,7 +162,7 @@ const Dashboard = () => {
       </div>
 
       {/* Dynamic Colored Stat Cards */}
-      <motion.div 
+      <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
@@ -228,7 +247,7 @@ const Dashboard = () => {
       {/* Main Two-Column Content Grid */}
       <div className="grid gap-8 lg:grid-cols-[2.1fr_0.9fr]">
         {/* Left Column: Quick Shorten + Recent Links */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
@@ -241,7 +260,7 @@ const Dashboard = () => {
               <Zap size={20} className="text-primary" />
               <h2 className="heading-section">Quick Shorten</h2>
             </div>
-            
+
             <form onSubmit={handleSubmit(onQuickShortenSubmit)} className="space-y-5">
               <div className="grid gap-5 md:grid-cols-[2.5fr_1.3fr_1.2fr]">
                 <Input
@@ -284,8 +303,8 @@ const Dashboard = () => {
           <Card className="space-y-5" shadowSize="md">
             <div className="border-b-2 border-primary pb-3 flex items-center justify-between">
               <h2 className="heading-section">Latest Trails</h2>
-              <Link 
-                to="/urls" 
+              <Link
+                to="/urls"
                 className="flex items-center gap-1.5 text-xs font-semibold uppercase text-secondary hover:text-primary transition-colors"
               >
                 View All <ArrowRight size={14} />
@@ -448,11 +467,11 @@ const Dashboard = () => {
               <HelpCircle size={16} />
               <span>Lynko's Wisdom</span>
             </div>
-            
+
             {/* Visual Mascot character block */}
             <div className="flex items-center gap-4 bg-white p-4 border border-primary rounded-md">
               <pre className="font-mono text-xs font-bold text-primary leading-none select-none">
-{`   /\\_/\\
+                {`   /\\_/\\
   ( o.o )
    > ^ <`}
               </pre>
@@ -464,9 +483,9 @@ const Dashboard = () => {
             <p className="text-sm font-medium text-primary italic leading-relaxed">
               "Did you know? Short links with custom back-halves get up to 40% more clicks. Your brand is your ink, make it permanent!"
             </p>
-            
-            <Link 
-              to="/urls" 
+
+            <Link
+              to="/urls"
               className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase text-secondary hover:text-primary hover:underline transition-colors"
             >
               Learn More <ArrowRight size={12} />
@@ -493,14 +512,14 @@ const Dashboard = () => {
                 <p className="text-2xl font-anton text-primary">{totalClicks}</p>
               </div>
             </div>
-            
+
             <div>
               <div className="flex justify-between mb-1.5">
                 <span className="text-[10px] font-semibold uppercase text-on-surface-variant tracking-wider">Monthly Quota</span>
                 <span className="font-mono text-[10px] font-semibold text-primary">{activeUrls} / 100</span>
               </div>
               <div className="w-full bg-surface-container-low border border-primary rounded-pill h-3.5 overflow-hidden">
-                <div 
+                <div
                   className="bg-secondary h-full transition-all duration-300 rounded-pill"
                   style={{ width: `${quotaPercent}%` }}
                 />
@@ -518,7 +537,7 @@ const Dashboard = () => {
                 Get unlimited short links, team permission controls, and API access with the Master Scribe plan.
               </p>
             </div>
-            
+
             <Button
               as="a"
               href="#pricing"

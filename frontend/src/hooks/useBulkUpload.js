@@ -137,6 +137,7 @@ export const useBulkUpload = () => {
     validationErrors,
     uploadResults,
     progress,
+    setProgress,
     uploading,
     fileMeta,
 

@@ -3,15 +3,15 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-hot-toast'
 import { useSearchParams, Link } from 'react-router-dom'
-import { 
-  Copy, 
-  Edit, 
-  Trash2, 
-  Calendar, 
-  QrCode, 
-  Search, 
-  Plus, 
-  X, 
+import {
+  Copy,
+  Edit,
+  Trash2,
+  Calendar,
+  QrCode,
+  Search,
+  Plus,
+  X,
   ExternalLink,
   Loader2,
   MousePointerClick,
@@ -21,6 +21,7 @@ import {
 import clsx from 'clsx'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUrls } from '../hooks/useUrls.js'
+import { useSocket } from '../context/SocketContext.jsx'
 import { createUrlSchema, updateUrlSchema } from '../schemas/urlSchemas.js'
 import { ENV } from '../constants/env.js'
 import Card from '../components/ui/Card.jsx'
@@ -42,6 +43,7 @@ const SUPPORTED_PLATFORMS = [
 export default function UrlsPage() {
   const {
     urls,
+    setUrls,
     isLoading,
     error,
     createLoading,
@@ -52,6 +54,7 @@ export default function UrlsPage() {
     modifyUrl,
     removeUrl,
   } = useUrls()
+  const socket = useSocket()
 
   const [searchParams, setSearchParams] = useSearchParams()
   const searchQuery = searchParams.get('q') || ''
@@ -78,6 +81,24 @@ export default function UrlsPage() {
   useEffect(() => {
     fetchUrls()
   }, [fetchUrls])
+
+  // Listen to socket clicks
+  useEffect(() => {
+    if (!socket) return
+
+    const handleRealTimeClick = (data) => {
+      setUrls((prevUrls) =>
+        prevUrls.map((item) =>
+          item._id === data.urlId ? { ...item, clickCount: data.totalClicks } : item
+        )
+      )
+    }
+
+    socket.on('click', handleRealTimeClick)
+    return () => {
+      socket.off('click', handleRealTimeClick)
+    }
+  }, [socket, setUrls])
 
   // Form for URL Creation
   const {
@@ -249,7 +270,7 @@ export default function UrlsPage() {
 
       <div className="grid gap-8 lg:grid-cols-[1fr_2fr]">
         {/* Left Column: Create Form OR Edit Form OR Success View */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-50px" }}
@@ -396,7 +417,7 @@ export default function UrlsPage() {
                   {...registerCreate('expiresAt')}
                 />
 
-                 <div className="space-y-2">
+                <div className="space-y-2">
                   <label className="flex items-center gap-2 font-space text-xs font-bold uppercase tracking-wider text-primary cursor-pointer select-none">
                     <input
                       type="checkbox"
@@ -747,7 +768,7 @@ export default function UrlsPage() {
                           <div className="border-t border-primary/10 bg-surface-container-low/30 p-5 mt-4 space-y-4 rounded-b-lg">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                               <h3 className="font-anton text-xs uppercase tracking-wider text-primary">Manage Platform Tracking Links</h3>
-                              
+
                               {/* Add Platform Dropdown */}
                               {link.platforms.length < SUPPORTED_PLATFORMS.length && (
                                 <div className="flex items-center gap-2">
@@ -795,7 +816,7 @@ export default function UrlsPage() {
                                   }
                                   const style = colors[p.toLowerCase()] || { text: 'text-primary', border: 'border-primary' }
                                   const platformUrl = `${shortUrl}?src=${p.toLowerCase()}`
-                                  
+
                                   const handleRemovePlatform = () => {
                                     const newPlatforms = (link.platforms || []).filter(item => item !== p)
                                     modifyUrl(link._id, { platforms: newPlatforms })
@@ -887,9 +908,9 @@ export default function UrlsPage() {
         details={
           confirmState.action?.link
             ? [
-                `Short code: /${confirmState.action.link.shortCode}`,
-                `Destination: ${confirmState.action.link.originalUrl}`,
-              ]
+              `Short code: /${confirmState.action.link.shortCode}`,
+              `Destination: ${confirmState.action.link.originalUrl}`,
+            ]
             : []
         }
         confirmLabel={confirmState.action?.type === 'delete' ? 'Delete Link' : 'Confirm Update'}

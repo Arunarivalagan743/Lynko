@@ -157,7 +157,9 @@ export const useUrls = () => {
 
   return {
     urls,
+    setUrls,
     selectedUrl,
+    setSelectedUrl,
     isLoading,
     error,
     createLoading,

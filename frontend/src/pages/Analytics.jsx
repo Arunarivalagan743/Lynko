@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useUrlAnalytics } from '../hooks/useUrlAnalytics.js'
 import { useUrls } from '../hooks/useUrls.js'
+import { useSocket } from '../context/SocketContext.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import SkeletonCard from '../components/loading/SkeletonCard.jsx'
@@ -48,16 +49,17 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { type: 'spring', stiffness: 260, damping: 20 } 
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 260, damping: 20 }
   }
 }
 
 export default function AnalyticsPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const socket = useSocket()
 
   // Fetch all URLs for selector
   const { urls, fetchUrls, isLoading: urlsLoading } = useUrls()
@@ -116,6 +118,22 @@ export default function AnalyticsPage() {
       fetchAllAnalytics()
     }
   }, [id, fetchAllAnalytics, dateRange])
+
+  // Listen to socket clicks for the currently selected URL
+  useEffect(() => {
+    if (!socket || !id) return
+
+    const handleRealTimeAnalytics = (data) => {
+      if (data.urlId === id) {
+        fetchAllAnalytics()
+      }
+    }
+
+    socket.on('click', handleRealTimeAnalytics)
+    return () => {
+      socket.off('click', handleRealTimeAnalytics)
+    }
+  }, [socket, id, fetchAllAnalytics])
 
   // Sync date inputs if external date range updates
   useEffect(() => {
@@ -297,7 +315,7 @@ export default function AnalyticsPage() {
           </motion.div>
 
           {/* 1. Analytics Summary Metrics Grid */}
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="show"
@@ -362,7 +380,7 @@ export default function AnalyticsPage() {
           </motion.div>
 
           {/* Browser, Device, and Daily Trends Splits */}
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="show"
@@ -565,61 +583,84 @@ export default function AnalyticsPage() {
           >
             <Card className="space-y-5">
               <div className="flex items-center justify-between border-b border-primary/10 pb-3">
-              <h2 className="heading-section flex items-center gap-2">
-                <Globe size={18} className="text-primary" />
-                Recent Visitor Logs
-              </h2>
-              <span className="text-xs font-semibold uppercase bg-surface-container-low border border-primary/20 rounded-md px-2.5 py-1 text-primary">
-                Total Rows: {visitsPagination.totalDocs}
-              </span>
-            </div>
-
-            {visitsLoading ? (
-              <SkeletonTable variant="visits" rowsCount={5} />
-            ) : visits.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border border-dashed border-primary/20 bg-surface-container-low/20 rounded-lg">
-                <Globe size={36} className="text-primary/30 animate-pulse" />
-                <p className="label-meta">
-                  No redirection activity logs recorded for this link yet.
-                </p>
+                <h2 className="heading-section flex items-center gap-2">
+                  <Globe size={18} className="text-primary" />
+                  Recent Visitor Logs
+                </h2>
+                <span className="text-xs font-semibold uppercase bg-surface-container-low border border-primary/20 rounded-md px-2.5 py-1 text-primary">
+                  Total Rows: {visitsPagination.totalDocs}
+                </span>
               </div>
-            ) : (
-              <div className="space-y-5">
-              <div className="space-y-4">
-                {/* Desktop/Tablet Table */}
-                <div className="hidden md:block overflow-x-auto border border-primary/15 rounded-lg overflow-hidden bg-white">
-                  <table className="w-full text-sm text-left border-collapse">
-                    <thead>
-                      <tr className="bg-surface-container-low text-primary border-b border-primary/10 text-xs font-semibold uppercase tracking-wider">
-                        <th className="p-3.5 border-r border-primary/10">Timestamp</th>
-                        <th className="p-3.5 border-r border-primary/10">IP Address</th>
-                        <th className="p-3.5 border-r border-primary/10">Browser</th>
-                        <th className="p-3.5 border-r border-primary/10">Device</th>
-                        <th className="p-3.5 border-r border-primary/10">Country</th>
-                        <th className="p-3.5">Quality</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-primary/15">
+
+              {visitsLoading ? (
+                <SkeletonTable variant="visits" rowsCount={5} />
+              ) : visits.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border border-dashed border-primary/20 bg-surface-container-low/20 rounded-lg">
+                  <Globe size={36} className="text-primary/30 animate-pulse" />
+                  <p className="label-meta">
+                    No redirection activity logs recorded for this link yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="space-y-4">
+                    {/* Desktop/Tablet Table */}
+                    <div className="hidden md:block overflow-x-auto border border-primary/15 rounded-lg overflow-hidden bg-white">
+                      <table className="w-full text-sm text-left border-collapse">
+                        <thead>
+                          <tr className="bg-surface-container-low text-primary border-b border-primary/10 text-xs font-semibold uppercase tracking-wider">
+                            <th className="p-3.5 border-r border-primary/10">Timestamp</th>
+                            <th className="p-3.5 border-r border-primary/10">IP Address</th>
+                            <th className="p-3.5 border-r border-primary/10">Browser</th>
+                            <th className="p-3.5 border-r border-primary/10">Device</th>
+                            <th className="p-3.5 border-r border-primary/10">Country</th>
+                            <th className="p-3.5">Quality</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-primary/15">
+                          {visits.map((visit, idx) => (
+                            <tr key={visit.id || visit.clickedAt} className={idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/30'}>
+                              <td className="p-3.5 text-on-surface-variant font-medium border-r border-primary/10 select-none">
+                                {new Date(visit.clickedAt).toLocaleString()}
+                              </td>
+                              <td className="p-3.5 text-primary font-semibold border-r border-primary/10 select-all font-mono text-xs">
+                                {visit.ip}
+                              </td>
+                              <td className="p-3.5 text-on-surface-variant font-semibold border-r border-primary/10">
+                                {visit.browser}
+                              </td>
+                              <td className="p-3.5 text-on-surface-variant font-semibold border-r border-primary/10">
+                                {visit.device}
+                              </td>
+                              <td className="p-3.5 text-on-surface-variant font-semibold border-r border-primary/10">
+                                {visit.country || 'Unknown'}
+                              </td>
+                              <td className="p-3.5">
+                                <span className={clsx(
+                                  'inline-block rounded-none border px-2.5 py-0.5 text-[10px] font-bold font-space uppercase',
+                                  visit.clickQuality === 'human'
+                                    ? 'bg-secondary-container/10 text-secondary border-secondary'
+                                    : visit.clickQuality === 'bot'
+                                      ? 'bg-tertiary-container/10 text-tertiary border-tertiary'
+                                      : 'bg-error-container/10 text-error border-error'
+                                )}>
+                                  {visit.clickQuality.toUpperCase()}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Cards Stack */}
+                    <div className="block md:hidden space-y-4">
                       {visits.map((visit, idx) => (
-                        <tr key={visit.id || visit.clickedAt} className={idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/30'}>
-                          <td className="p-3.5 text-on-surface-variant font-medium border-r border-primary/10 select-none">
-                            {new Date(visit.clickedAt).toLocaleString()}
-                          </td>
-                          <td className="p-3.5 text-primary font-semibold border-r border-primary/10 select-all font-mono text-xs">
-                            {visit.ip}
-                          </td>
-                          <td className="p-3.5 text-on-surface-variant font-semibold border-r border-primary/10">
-                            {visit.browser}
-                          </td>
-                          <td className="p-3.5 text-on-surface-variant font-semibold border-r border-primary/10">
-                            {visit.device}
-                          </td>
-                          <td className="p-3.5 text-on-surface-variant font-semibold border-r border-primary/10">
-                            {visit.country || 'Unknown'}
-                          </td>
-                          <td className="p-3.5">
+                        <Card key={visit.id || visit.clickedAt || idx} className="p-4 space-y-2.5" shadowSize="sm">
+                          <div className="flex items-center justify-between">
+                            <span className="code-label select-none">{new Date(visit.clickedAt).toLocaleString()}</span>
                             <span className={clsx(
-                              'inline-block rounded-none border px-2.5 py-0.5 text-[10px] font-bold font-space uppercase',
+                              'inline-block rounded-none border px-2 py-0.5 text-[9px] font-bold font-space uppercase',
                               visit.clickQuality === 'human'
                                 ? 'bg-secondary-container/10 text-secondary border-secondary'
                                 : visit.clickQuality === 'bot'
@@ -628,84 +669,61 @@ export default function AnalyticsPage() {
                             )}>
                               {visit.clickQuality.toUpperCase()}
                             </span>
-                          </td>
-                        </tr>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs border-t border-primary/10 pt-2.5">
+                            <div>
+                              <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">IP Address</p>
+                              <p className="font-semibold text-primary font-mono select-all mt-0.5">{visit.ip}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Country</p>
+                              <p className="font-semibold text-on-surface-variant mt-0.5">{visit.country || 'Unknown'}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Browser</p>
+                              <p className="font-semibold text-on-surface-variant mt-0.5">{visit.browser}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Device</p>
+                              <p className="font-semibold text-on-surface-variant mt-0.5">{visit.device}</p>
+                            </div>
+                          </div>
+                        </Card>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Cards Stack */}
-                <div className="block md:hidden space-y-4">
-                  {visits.map((visit, idx) => (
-                    <Card key={visit.id || visit.clickedAt || idx} className="p-4 space-y-2.5" shadowSize="sm">
-                      <div className="flex items-center justify-between">
-                        <span className="code-label select-none">{new Date(visit.clickedAt).toLocaleString()}</span>
-                        <span className={clsx(
-                          'inline-block rounded-none border px-2 py-0.5 text-[9px] font-bold font-space uppercase',
-                          visit.clickQuality === 'human'
-                            ? 'bg-secondary-container/10 text-secondary border-secondary'
-                            : visit.clickQuality === 'bot'
-                              ? 'bg-tertiary-container/10 text-tertiary border-tertiary'
-                              : 'bg-error-container/10 text-error border-error'
-                        )}>
-                          {visit.clickQuality.toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs border-t border-primary/10 pt-2.5">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">IP Address</p>
-                          <p className="font-semibold text-primary font-mono select-all mt-0.5">{visit.ip}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Country</p>
-                          <p className="font-semibold text-on-surface-variant mt-0.5">{visit.country || 'Unknown'}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Browser</p>
-                          <p className="font-semibold text-on-surface-variant mt-0.5">{visit.browser}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold uppercase text-on-surface-variant/60 font-space">Device</p>
-                          <p className="font-semibold text-on-surface-variant mt-0.5">{visit.device}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-                {/* Pagination Controls */}
-                {visitsPagination.totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-xs font-semibold text-on-surface-variant uppercase select-none">
-                      Page {visitsPagination.page} of {visitsPagination.totalPages}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => changePage(visitsPagination.page - 1)}
-                        disabled={visitsPagination.page <= 1}
-                        className="rounded-md border border-primary bg-white text-primary px-4 py-2 text-xs font-semibold uppercase hover:bg-surface-container-low active:scale-95 transition-all duration-fast disabled:opacity-40 disabled:cursor-not-allowed select-none"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        onClick={() => changePage(visitsPagination.page + 1)}
-                        disabled={visitsPagination.page >= visitsPagination.totalPages}
-                        className="rounded-md border border-primary bg-white text-primary px-4 py-2 text-xs font-semibold uppercase hover:bg-surface-container-low active:scale-95 transition-all duration-fast disabled:opacity-40 disabled:cursor-not-allowed select-none"
-                      >
-                        Next
-                      </button>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
-          </Card>
-        </motion.div>
-      </>
-    )}
-  </motion.div>
+
+                  {/* Pagination Controls */}
+                  {visitsPagination.totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-xs font-semibold text-on-surface-variant uppercase select-none">
+                        Page {visitsPagination.page} of {visitsPagination.totalPages}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => changePage(visitsPagination.page - 1)}
+                          disabled={visitsPagination.page <= 1}
+                          className="rounded-md border border-primary bg-white text-primary px-4 py-2 text-xs font-semibold uppercase hover:bg-surface-container-low active:scale-95 transition-all duration-fast disabled:opacity-40 disabled:cursor-not-allowed select-none"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() => changePage(visitsPagination.page + 1)}
+                          disabled={visitsPagination.page >= visitsPagination.totalPages}
+                          className="rounded-md border border-primary bg-white text-primary px-4 py-2 text-xs font-semibold uppercase hover:bg-surface-container-low active:scale-95 transition-all duration-fast disabled:opacity-40 disabled:cursor-not-allowed select-none"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Card>
+          </motion.div>
+        </>
+      )}
+    </motion.div>
   )
 }
 export { AnalyticsPage }

@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useBulkUpload } from '../hooks/useBulkUpload.js'
+import { useSocket } from '../context/SocketContext.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import { ENV } from '../constants/env.js'
@@ -20,6 +21,7 @@ export default function BulkUploadPage() {
     validationErrors,
     uploadResults,
     progress,
+    setProgress,
     uploading,
     fileMeta,
     handleFileSelect,
@@ -27,7 +29,23 @@ export default function BulkUploadPage() {
     downloadResults,
   } = useBulkUpload()
 
+  const socket = useSocket()
   const [isDragActive, setIsDragActive] = useState(false)
+
+  // Listen to socket bulk progress updates
+  React.useEffect(() => {
+    if (!socket) return
+
+    const handleBulkProgress = (data) => {
+      const calculatedPct = Math.round((data.processed / data.total) * 100)
+      setProgress(calculatedPct)
+    }
+
+    socket.on('bulkProgress', handleBulkProgress)
+    return () => {
+      socket.off('bulkProgress', handleBulkProgress)
+    }
+  }, [socket, setProgress])
 
   // Drag and drop handlers
   const handleDrag = useCallback((e) => {
