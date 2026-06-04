@@ -366,9 +366,14 @@ Below are the actual screenshots of our retro-brutalist dashboard, link tracking
 ---
 
 ## 📽️ Demo Video
+
 > [!IMPORTANT]
-> **Video Demo Link**: [INSERT YOUR LOOM OR YOUTUBE VIDEO LINK HERE]
-> *(Please replace this placeholder with your actual Loom/YouTube video showcasing the working features, codebase walkthrough, and responsive design).*
+> ### 🚀 **Watch the Lynko Project Walkthrough**
+> Click the thumbnail below to watch the full demo showcasing the retro-brutalist dashboard, link management, bulk uploads, and real-time visitor analytics:
+> 
+> [![Lynko Loom Walkthrough](https://cdn.loom.com/sessions/thumbnails/eb1a6d729689408b9594efa00da33729-with-play.gif)](https://www.loom.com/share/eb1a6d729689408b9594efa00da33729)
+> 
+> **🔗 Direct Link**: [https://www.loom.com/share/eb1a6d729689408b9594efa00da33729](https://www.loom.com/share/eb1a6d729689408b9594efa00da33729)
 
 ---
 
