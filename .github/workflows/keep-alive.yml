@@ -1,0 +1,15 @@
+name: Keep Backend Alive
+
+on:
+  schedule:
+    # Run every 14 minutes to prevent Render free tier from sleeping (15 min inactivity limit)
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Allows manual triggering of the workflow from the GitHub Actions tab
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Backend health check endpoint
+        run: |
+          curl -f -s https://lynko-9867.onrender.com/health || curl -f -s https://lynko-9867.onrender.com/

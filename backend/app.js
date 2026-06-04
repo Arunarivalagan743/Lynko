@@ -25,6 +25,10 @@ app.use(
 );
 app.use(helmet());
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is healthy" });
+});
+
 registerRoutes(app);
 
 app.use((req, res) => {
