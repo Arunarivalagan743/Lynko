@@ -10,7 +10,7 @@ import Input from '../../components/ui/Input.jsx'
 import PasswordInput from '../../components/ui/PasswordInput.jsx'
 import { loginSchema } from '../../schemas/authSchemas.js'
 import { useAuth } from '../../context/AuthContext.jsx'
-import loginImg from '../../assets/loginjsx.png'
+import loginImg from '../../assets/illustrations/loginjsx.png'
 
 const Login = () => {
   const [apiError, setApiError] = useState('')

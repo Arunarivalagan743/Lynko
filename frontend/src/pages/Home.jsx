@@ -26,9 +26,9 @@ import toast from 'react-hot-toast'
 import { ENV } from '../constants/env.js'
 
 // Illustrations
-import heroLinkImg from '../assets/hero_link.png'
-import qrScanImg from '../assets/qr_scan.png'
-import browseUrlImg from '../assets/browse_url.png'
+import heroLinkImg from '../assets/illustrations/hero_link.png'
+import qrScanImg from '../assets/illustrations/qr_scan.png'
+import browseUrlImg from '../assets/illustrations/browse_url.png'
 
 const fadeUpVariants = {
   hidden: { opacity: 0, y: 30 },

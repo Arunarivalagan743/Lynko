@@ -8,7 +8,7 @@ import Input from '../components/ui/Input.jsx'
 import FieldMessage from '../components/ui/FieldMessage.jsx'
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx'
 import PageLoader from '../components/loading/PageLoader.jsx'
-import profileImg from '../assets/profilejsx.png'
+import profileImg from '../assets/illustrations/profilejsx.png'
 import {
   User as UserIcon,
   Mail,

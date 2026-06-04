@@ -6,8 +6,8 @@ import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import PageLoader from '../components/loading/PageLoader.jsx'
 import toast from 'react-hot-toast'
-import publicImg from '../assets/publicjsx.png'
-import publicNoDataImg from '../assets/nodata.png'
+import publicImg from '../assets/illustrations/publicjsx.png'
+import publicNoDataImg from '../assets/illustrations/nodata.png'
 import { 
   TrendingUp, 
   BarChart2, 

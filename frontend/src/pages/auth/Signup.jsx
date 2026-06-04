@@ -10,7 +10,7 @@ import Input from '../../components/ui/Input.jsx'
 import PasswordInput from '../../components/ui/PasswordInput.jsx'
 import { signupSchema } from '../../schemas/authSchemas.js'
 import { useAuth } from '../../context/AuthContext.jsx'
-import signupImg from '../../assets/signupjsx.png'
+import signupImg from '../../assets/illustrations/signupjsx.png'
 
 const Signup = () => {
   const [apiError, setApiError] = useState('')

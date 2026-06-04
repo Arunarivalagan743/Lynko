@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, Home, Compass } from 'lucide-react'
 import Button from '../components/ui/Button.jsx'
 import Card from '../components/ui/Card.jsx'
-import notFoundImg from '../assets/404.png'
+import notFoundImg from '../assets/illustrations/404.png'
 
 export default function NotFound() {
   return (

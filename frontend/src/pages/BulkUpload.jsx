@@ -5,7 +5,7 @@ import { useSocket } from '../context/SocketContext.jsx'
 import Card from '../components/ui/Card.jsx'
 import Button from '../components/ui/Button.jsx'
 import { ENV } from '../constants/env.js'
-import bulkImg from '../assets/bulkjsx.png'
+import bulkImg from '../assets/illustrations/bulkjsx.png'
 import { 
   UploadCloud, 
   FileText, 

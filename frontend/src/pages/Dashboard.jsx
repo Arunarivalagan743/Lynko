@@ -26,8 +26,8 @@ import { useSocket } from '../context/SocketContext.jsx'
 import { createUrlSchema } from '../schemas/urlSchemas.js'
 import { ENV } from '../constants/env.js'
 import toast from 'react-hot-toast'
-import dashboardImg from '../assets/dashboardjsx.png'
-import dashboardNoDataImg from '../assets/dashbardnodata.png'
+import dashboardImg from '../assets/illustrations/dashboardjsx.png'
+import dashboardNoDataImg from '../assets/illustrations/dashbardnodata.png'
 
 const containerVariants = {
   hidden: { opacity: 0 },

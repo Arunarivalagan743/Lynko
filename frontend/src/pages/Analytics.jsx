@@ -9,8 +9,8 @@ import SkeletonCard from '../components/loading/SkeletonCard.jsx'
 import SkeletonTable from '../components/loading/SkeletonTable.jsx'
 import { ENV } from '../constants/env.js'
 import clsx from 'clsx'
-import analyticsImg from '../assets/analyticsjsx.png'
-import analyticsNoDataImg from '../assets/analatysnodata.png'
+import analyticsImg from '../assets/illustrations/analyticsjsx.png'
+import analyticsNoDataImg from '../assets/illustrations/analatysnodata.png'
 import { motion } from 'framer-motion'
 import {
   Calendar,
