@@ -21,7 +21,10 @@ import {
   Shuffle,
   RefreshCw,
   BarChart3,
+  X,
+  BarChart2
 } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 import Card from '../components/ui/Card.jsx'
 import engageImg from '../assets/engagejsx.png'
 import noDataImg from '../assets/nodata.png'
@@ -78,6 +81,7 @@ export default function EngagementDashboard() {
 
   // Selected URL for urlId-scoped features (2, 3, 6)
   const [selectedUrlId, setSelectedUrlId] = useState('')
+  const [activeStatModal, setActiveStatModal] = useState(null)
 
   const {
     topLinks, topLinksLoading,
@@ -91,6 +95,88 @@ export default function EngagementDashboard() {
     fetchUrlScopedData,
     fetchActivity,
   } = useEngagementAnalytics(selectedUrlId)
+
+  const exportChartAsPng = (containerId) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const container = document.getElementById(containerId)
+        if (!container) return reject(new Error('Container not found'))
+        const svgElement = container.querySelector('svg')
+        if (!svgElement) return reject(new Error('SVG not found'))
+
+        const svgString = new XMLSerializer().serializeToString(svgElement)
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
+        const URL = window.URL || window.webkitURL || window
+        const blobURL = URL.createObjectURL(svgBlob)
+
+        const image = new Image()
+        image.onload = () => {
+          const canvas = document.createElement('canvas')
+          const bbox = svgElement.getBoundingClientRect()
+          canvas.width = bbox.width * 2
+          canvas.height = bbox.height * 2
+          const context = canvas.getContext('2d')
+          context.scale(2, 2)
+          
+          context.fillStyle = '#ffffff'
+          context.fillRect(0, 0, bbox.width, bbox.height)
+          context.drawImage(image, 0, 0, bbox.width, bbox.height)
+          
+          const pngDataUrl = canvas.toDataURL('image/png')
+          URL.revokeObjectURL(blobURL)
+          resolve(pngDataUrl)
+        }
+        image.onerror = (err) => {
+          URL.revokeObjectURL(blobURL)
+          reject(err)
+        }
+        image.src = blobURL
+      } catch (err) {
+        reject(err)
+      }
+    })
+  }
+
+  const handleDownloadChart = async (containerId, title) => {
+    try {
+      const dataUrl = await exportChartAsPng(containerId)
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `${title.toLowerCase().replace(/\s+/g, '_')}_chart.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      toast.success('Chart image downloaded!')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to export chart image.')
+    }
+  }
+
+  const handleShareChart = async (containerId, title) => {
+    try {
+      const dataUrl = await exportChartAsPng(containerId)
+      if (navigator.share) {
+        const response = await fetch(dataUrl)
+        const blob = await response.blob()
+        const file = new File([blob], `${title.toLowerCase().replace(/\s+/g, '_')}_chart.png`, { type: 'image/png' })
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `${title} Chart Report`,
+            text: `Engagement traffic analytics data report for short code /${selectedUrl?.shortCode || ''}`,
+          })
+          toast.success('Chart shared successfully!')
+          return
+        }
+      }
+      toast.error('Native sharing of files is not supported on this browser.')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to share chart.')
+    }
+  }
 
   // ── Initial load ──
   useEffect(() => {
@@ -137,7 +223,7 @@ export default function EngagementDashboard() {
       ) : trafficQuality ? (
         <div className="space-y-5">
           {/* Donut chart */}
-          <div className="h-52 w-full">
+          <div onClick={() => setActiveStatModal('quality')} className="h-52 w-full cursor-pointer hover:opacity-90 transition-opacity" title="Click to view details">
             {qualityData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -205,7 +291,7 @@ export default function EngagementDashboard() {
         <EmptyState icon={Shuffle} message="No referrer data recorded for this link yet." />
       ) : (
         <div className="space-y-5">
-          <div className="h-60 w-full">
+          <div onClick={() => setActiveStatModal('referrers')} className="h-60 w-full cursor-pointer hover:opacity-90 transition-opacity" title="Click to view/download/share chart">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={referrers}
@@ -261,7 +347,7 @@ export default function EngagementDashboard() {
         <EmptyState icon={Globe} message="Development Traffic" />
       ) : (
         <div className="space-y-5">
-          <div className="h-60 w-full">
+          <div onClick={() => setActiveStatModal('geography')} className="h-60 w-full cursor-pointer hover:opacity-90 transition-opacity" title="Click to view/download/share chart">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={geography.slice(0, 8)} margin={{ top: 0, right: 8, left: -28, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d8dbd6" />
@@ -640,13 +726,227 @@ export default function EngagementDashboard() {
           {renderPlatformAnalyticsCard()}
           {renderSmartInsightsCard()}
         </div>
-
-        {/* ── ROW 4: Referrers + Geography ── */}
-        <div className="grid gap-8 md:grid-cols-2">
-          {renderReferrersCard()}
-          {renderGeographyCard()}
-        </div>
       </motion.div>
+
+      {/* Details Stats Modal viewer */}
+      {activeStatModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.2s_ease-out] overflow-y-auto">
+          <Card className="max-w-2xl w-full !bg-white border-2 border-primary space-y-6 !p-6 relative shadow-brutal-md max-h-[90vh] overflow-y-auto" dogEar>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b-2 border-primary pb-3">
+              <h3 className="font-anton text-lg uppercase tracking-wide text-primary flex items-center gap-2">
+                <BarChart2 size={20} className="text-secondary" />
+                {activeStatModal === 'quality' && 'Traffic Health & Quality Detail'}
+                {activeStatModal === 'referrers' && 'Traffic Sources breakdown'}
+                {activeStatModal === 'geography' && 'Country breakdown'}
+              </h3>
+              <button
+                onClick={() => setActiveStatModal(null)}
+                className="text-primary hover:text-secondary transition-colors"
+                title="Close stats modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="space-y-4">
+              {activeStatModal === 'quality' && trafficQuality && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div id="quality-chart-container" className="h-64 w-full border border-primary/15 bg-surface-container-low/20 p-2 rounded-lg flex items-center justify-center">
+                      {qualityData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={qualityData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={52}
+                              outerRadius={72}
+                              paddingAngle={3}
+                              dataKey="value"
+                            >
+                              {qualityData.map((_, i) => (
+                                <Cell key={i} fill={['#2c6956', '#636037', '#ba1a1a'][i % 3]} />
+                              ))}
+                            </Pie>
+                            <Tooltip contentStyle={TOOLTIP_STYLE} />
+                            <Legend iconType="square" iconSize={8} wrapperStyle={{ fontSize: '10px', fontFamily: 'Space Mono' }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-xs font-semibold text-on-surface-variant uppercase">No visit data recorded yet</div>
+                      )}
+                    </div>
+                    {qualityData.length > 0 && (
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadChart('quality-chart-container', 'Traffic Quality')}
+                          className="px-3 py-1 border border-primary bg-white text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low transition-colors cursor-pointer"
+                        >
+                          Download Chart
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareChart('quality-chart-container', 'Traffic Quality')}
+                          className="px-3 py-1 border border-primary bg-primary text-xs font-bold uppercase tracking-wider text-white hover:bg-primary/95 transition-colors cursor-pointer"
+                        >
+                          Share Chart
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="border border-primary/20 p-4 bg-surface-container-low rounded-md">
+                      <p className="text-[10px] font-semibold uppercase text-on-surface-variant tracking-wider">Human Clicks</p>
+                      <p className="text-2xl font-anton text-primary">{trafficQuality.human || 0}</p>
+                    </div>
+                    <div className="border border-primary/20 p-4 bg-surface-container-low rounded-md">
+                      <p className="text-[10px] font-semibold uppercase text-on-surface-variant tracking-wider">Bot Clicks</p>
+                      <p className="text-2xl font-anton text-error">{trafficQuality.bot || 0}</p>
+                    </div>
+                    <div className="border border-primary/20 p-4 bg-surface-container-low rounded-md">
+                      <p className="text-[10px] font-semibold uppercase text-on-surface-variant tracking-wider">Suspicious Clicks</p>
+                      <p className="text-2xl font-anton text-tertiary">{trafficQuality.suspicious || 0}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-4 bg-surface-container-low border border-primary border-t-4">
+                    <ShieldCheck size={20} className="text-secondary mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold font-space uppercase text-primary">Traffic Verification health</h4>
+                      <p className="text-xs text-on-surface-variant leading-relaxed">
+                        Verified human traffic ratio is {trafficQuality.humanPercentage}%. {trafficQuality.botPercentage}% of actions are automated hits, and {trafficQuality.suspiciousPercentage}% are suspicious requests.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeStatModal === 'referrers' && referrers.length > 0 && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div id="referrers-chart-container" className="h-64 w-full border border-primary/15 bg-surface-container-low/20 p-2 rounded-lg flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={referrers} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#d8dbd6" />
+                          <XAxis type="number" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                          <YAxis type="category" dataKey="source" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} width={72} />
+                          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(44,105,86,0.05)' }} />
+                          <Bar dataKey="clicks" radius={[0, 0, 0, 0]} barSize={16}>
+                            {referrers.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadChart('referrers-chart-container', 'Traffic Sources')}
+                        className="px-3 py-1 border border-primary bg-white text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low transition-colors cursor-pointer"
+                      >
+                        Download Chart
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleShareChart('referrers-chart-container', 'Traffic Sources')}
+                        className="px-3 py-1 border border-primary bg-primary text-xs font-bold uppercase tracking-wider text-white hover:bg-primary/95 transition-colors cursor-pointer"
+                      >
+                        Share Chart
+                      </button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto border border-primary/10 rounded-lg">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary bg-surface-container-low/40">
+                          <th className="p-2 font-bold">Source</th>
+                          <th className="p-2 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {referrers.map((r, idx) => (
+                          <tr key={r.source} className={idx % 2 === 0 ? '' : 'bg-surface-container-low/20'}>
+                            <td className="p-2 font-bold text-primary">{r.source}</td>
+                            <td className="p-2 text-right font-bold text-primary font-mono">{r.clicks}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeStatModal === 'geography' && geography.length > 0 && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div id="geography-chart-container" className="h-64 w-full border border-primary/15 bg-surface-container-low/20 p-2 rounded-lg flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={geography.slice(0, 8)} margin={{ top: 0, right: 8, left: -28, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d8dbd6" />
+                          <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={9} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                          <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(44,105,86,0.05)' }} />
+                          <Bar dataKey="value" name="Clicks" radius={[0, 0, 0, 0]} barSize={22}>
+                            {geography.slice(0, 8).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadChart('geography-chart-container', 'Geographic Distribution')}
+                        className="px-3 py-1 border border-primary bg-white text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low transition-colors cursor-pointer"
+                      >
+                        Download Chart
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleShareChart('geography-chart-container', 'Geographic Distribution')}
+                        className="px-3 py-1 border border-primary bg-primary text-xs font-bold uppercase tracking-wider text-white hover:bg-primary/95 transition-colors cursor-pointer"
+                      >
+                        Share Chart
+                      </button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto border border-primary/10 rounded-lg">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary bg-surface-container-low/40">
+                          <th className="p-2 font-bold">Country</th>
+                          <th className="p-2 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {geography.slice(0, 8).map((g, idx) => (
+                          <tr key={g.name} className={idx % 2 === 0 ? '' : 'bg-surface-container-low/20'}>
+                            <td className="p-2 font-bold text-primary">{g.name}</td>
+                            <td className="p-2 text-right font-bold text-primary font-mono">{g.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-primary/10 pt-4 flex justify-end">
+              <Button onClick={() => setActiveStatModal(null)} size="md">
+                Close Viewer
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </motion.div>
   )
 }

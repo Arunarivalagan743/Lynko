@@ -19,8 +19,11 @@ import {
   Globe,
   RefreshCw,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  QrCode,
+  X
 } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 import {
   ResponsiveContainer,
   PieChart,
@@ -89,6 +92,135 @@ export default function AnalyticsPage() {
   // Local filter states
   const [fromDate, setFromDate] = useState(dateRange.from)
   const [toDate, setToDate] = useState(dateRange.to)
+  const [activeQrModal, setActiveQrModal] = useState(null)
+  const [activeStatModal, setActiveStatModal] = useState(null)
+
+  const handleShareQr = async (qrDataUrl, shortCode, shortUrl) => {
+    if (navigator.share) {
+      try {
+        const response = await fetch(qrDataUrl)
+        const blob = await response.blob()
+        const file = new File([blob], `qr_${shortCode}.png`, { type: 'image/png' })
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `QR Code for /${shortCode}`,
+            text: `Scan to visit: ${shortUrl}`,
+          })
+          toast.success('Shared successfully!')
+          return
+        }
+      } catch (err) {
+        console.error('Error preparing file share:', err)
+      }
+
+      try {
+        await navigator.share({
+          title: `QR Code for /${shortCode}`,
+          text: `Scan to visit: ${shortUrl}`,
+          url: shortUrl,
+        })
+        toast.success('Shared successfully!')
+        return
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Share failed:', err)
+        } else {
+          return
+        }
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shortUrl)
+      toast.success('Link copied to clipboard! (Web Share API not supported)')
+    } catch (err) {
+      toast.error('Could not copy link.')
+    }
+  }
+
+  const exportChartAsPng = (containerId) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const container = document.getElementById(containerId)
+        if (!container) return reject(new Error('Container not found'))
+        const svgElement = container.querySelector('svg')
+        if (!svgElement) return reject(new Error('SVG not found'))
+
+        const svgString = new XMLSerializer().serializeToString(svgElement)
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
+        const URL = window.URL || window.webkitURL || window
+        const blobURL = URL.createObjectURL(svgBlob)
+
+        const image = new Image()
+        image.onload = () => {
+          const canvas = document.createElement('canvas')
+          const bbox = svgElement.getBoundingClientRect()
+          canvas.width = bbox.width * 2
+          canvas.height = bbox.height * 2
+          const context = canvas.getContext('2d')
+          context.scale(2, 2)
+          
+          context.fillStyle = '#ffffff'
+          context.fillRect(0, 0, bbox.width, bbox.height)
+          context.drawImage(image, 0, 0, bbox.width, bbox.height)
+          
+          const pngDataUrl = canvas.toDataURL('image/png')
+          URL.revokeObjectURL(blobURL)
+          resolve(pngDataUrl)
+        }
+        image.onerror = (err) => {
+          URL.revokeObjectURL(blobURL)
+          reject(err)
+        }
+        image.src = blobURL
+      } catch (err) {
+        reject(err)
+      }
+    })
+  }
+
+  const handleDownloadChart = async (containerId, title) => {
+    try {
+      const dataUrl = await exportChartAsPng(containerId)
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `${title.toLowerCase().replace(/\s+/g, '_')}_chart.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      toast.success('Chart image downloaded!')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to export chart image.')
+    }
+  }
+
+  const handleShareChart = async (containerId, title) => {
+    try {
+      const dataUrl = await exportChartAsPng(containerId)
+      if (navigator.share) {
+        const response = await fetch(dataUrl)
+        const blob = await response.blob()
+        const file = new File([blob], `${title.toLowerCase().replace(/\s+/g, '_')}_chart.png`, { type: 'image/png' })
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `${title} Chart Report`,
+            text: `Redirection traffic analytics for Lynko short link /${currentUrl?.shortCode || ''}`,
+          })
+          toast.success('Chart shared successfully!')
+          return
+        }
+      }
+      toast.error('Native sharing of files is not supported on this browser.')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to share chart.')
+    }
+  }
 
   // Load URL list on mount to populate selector
   useEffect(() => {
@@ -241,30 +373,57 @@ export default function AnalyticsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <Card className="space-y-3 !py-5" shadowSize="sm">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="space-y-1.5">
-                    <span className="font-space text-[11px] font-bold uppercase text-primary">Target URL</span>
-                    <a
-                      href={currentUrl.originalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-semibold text-secondary hover:underline break-all flex items-center gap-1.5"
-                    >
-                      {currentUrl.originalUrl} <ExternalLink size={14} />
-                    </a>
+              <Card className="!py-5" shadowSize="sm">
+                <div className="flex flex-col sm:flex-row items-center gap-6 justify-between">
+                  {/* Left & Middle: Details */}
+                  <div className="flex-1 min-w-0 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <span className="font-space text-[11px] font-bold uppercase text-primary">Target URL</span>
+                      <a
+                        href={currentUrl.originalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-semibold text-secondary hover:underline break-all flex items-center gap-1.5"
+                      >
+                        {currentUrl.originalUrl} <ExternalLink size={14} />
+                      </a>
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="font-space text-[11px] font-bold uppercase text-primary">Short URL</span>
+                      <a
+                        href={fullShortUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-bold text-secondary hover:underline block break-all font-mono"
+                      >
+                        {fullShortUrl}
+                      </a>
+                    </div>
                   </div>
-                  <div className="space-y-1.5 text-right">
-                    <span className="font-space text-[11px] font-bold uppercase text-primary">Short URL</span>
-                    <a
-                      href={fullShortUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-bold text-secondary hover:underline block break-all"
-                    >
-                      {fullShortUrl}
-                    </a>
-                  </div>
+
+                  {/* Right: QR Code Trigger */}
+                  {(() => {
+                    const qrUrl = currentUrl.qrCodeDataUrl || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(fullShortUrl)}`
+                    return (
+                      <div className="flex items-center gap-3 bg-surface-container-low/30 border border-primary/10 p-2.5 rounded-lg w-full sm:w-auto justify-between sm:justify-start">
+                        <div className="space-y-0.5">
+                          <span className="font-space text-[10px] font-bold uppercase text-primary block">QR Code</span>
+                          <span className="text-[10px] text-on-surface-variant font-medium block">Click to view</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveQrModal({ shortCode: currentUrl.shortCode, qrUrl, shortUrl: fullShortUrl })}
+                          className="relative group border border-primary/20 bg-white p-1 rounded-md shadow-sm hover:border-primary transition-colors cursor-pointer"
+                          title="View/Download/Share QR Code"
+                        >
+                          <img src={qrUrl} alt="QR" className="h-11 w-11 object-contain" />
+                          <div className="absolute inset-0 bg-primary/95 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md text-[9px] text-white font-semibold uppercase">
+                            Open
+                          </div>
+                        </button>
+                      </div>
+                    )
+                  })()}
                 </div>
               </Card>
             </motion.div>
@@ -336,7 +495,7 @@ export default function AnalyticsPage() {
               <>
                 {/* Total Clicks Card */}
                 <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                  <Card className="flex flex-col justify-between !p-6 space-y-3 !bg-white h-full" shadowSize="sm" hover>
+                  <Card onClick={() => setActiveStatModal('clicks')} className="flex flex-col justify-between !p-6 space-y-3 !bg-white h-full cursor-pointer hover:border-primary transition-colors" shadowSize="sm" hover>
                     <div className="flex items-center justify-between text-primary">
                       <span className="font-space text-xs font-bold uppercase tracking-wider">Total Clicks</span>
                       <TrendingUp size={18} />
@@ -350,7 +509,7 @@ export default function AnalyticsPage() {
 
                 {/* Last Visit Card */}
                 <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                  <Card className="flex flex-col justify-between !p-6 space-y-3 col-span-1 !bg-surface-container-low h-full" shadowSize="sm" hover>
+                  <Card onClick={() => setActiveStatModal('visits')} className="flex flex-col justify-between !p-6 space-y-3 col-span-1 !bg-surface-container-low h-full cursor-pointer hover:border-primary transition-colors" shadowSize="sm" hover>
                     <div className="flex items-center justify-between text-primary">
                       <span className="font-space text-xs font-bold uppercase tracking-wider">Last Visit</span>
                       <Calendar size={18} />
@@ -395,7 +554,7 @@ export default function AnalyticsPage() {
                 ) : (
                   <div className="space-y-5">
                     {/* Browser Pie Chart */}
-                    <div className="h-72 w-full flex items-center justify-center">
+                    <div onClick={() => setActiveStatModal('browser')} className="h-72 w-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" title="Click to view/download/share chart">
                       {browsers.some(b => b.value > 0) ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
@@ -459,7 +618,7 @@ export default function AnalyticsPage() {
                 ) : (
                   <div className="space-y-5">
                     {/* Device Bar Chart */}
-                    <div className="h-72 w-full flex items-center justify-center">
+                    <div onClick={() => setActiveStatModal('device')} className="h-72 w-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" title="Click to view/download/share chart">
                       {devices.some(d => d.value > 0) ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={devices} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
@@ -520,7 +679,7 @@ export default function AnalyticsPage() {
                 ) : (
                   <div className="space-y-5">
                     {/* Daily Trends Line Chart */}
-                    <div className="h-72 w-full flex items-center justify-center">
+                    <div onClick={() => setActiveStatModal('clicks')} className="h-72 w-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" title="Click to view/download/share chart">
                       {trends.some(t => t.clicks > 0) ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart data={trends} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
@@ -718,6 +877,302 @@ export default function AnalyticsPage() {
             </Card>
           </motion.div>
         </>
+      )}
+
+      {/* QR Code Viewer, Downloader, & Sharer Modal */}
+      {activeQrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.2s_ease-out]">
+          <Card className="max-w-md w-full !bg-white border-2 border-primary space-y-6 !p-6 relative shadow-brutal-md" dogEar>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b-2 border-primary pb-3">
+              <h3 className="font-anton text-lg uppercase tracking-wide text-primary flex items-center gap-2">
+                <QrCode size={20} className="text-secondary" />
+                QR Code: /{activeQrModal.shortCode}
+              </h3>
+              <button
+                onClick={() => setActiveQrModal(null)}
+                className="text-primary hover:text-secondary transition-colors"
+                title="Close Modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* QR Body */}
+            <div className="flex flex-col items-center justify-center py-4 bg-surface-container-low/35 border border-dashed border-primary/25 rounded-md">
+              <img
+                src={activeQrModal.qrUrl}
+                alt={`QR Code for ${activeQrModal.shortCode}`}
+                className="h-48 w-48 object-contain bg-white p-2 border-2 border-primary shadow-brutal-xs"
+              />
+              <p className="mt-4 font-mono text-xs font-semibold text-text-muted break-all text-center max-w-[85%] select-all">
+                {activeQrModal.shortUrl}
+              </p>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <a
+                href={activeQrModal.qrUrl}
+                download={`qr_${activeQrModal.shortCode}.png`}
+                className="flex-1 text-center py-3 border-2 border-primary bg-secondary text-primary font-space text-xs font-bold uppercase tracking-wider hover:bg-secondary/90 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-brutal-xs active:translate-x-0 active:translate-y-0 active:shadow-none transition-all cursor-pointer block"
+              >
+                Download PNG
+              </a>
+              <Button
+                onClick={() => handleShareQr(activeQrModal.qrUrl, activeQrModal.shortCode, activeQrModal.shortUrl)}
+                variant="primary"
+                className="flex-1"
+              >
+                Share QR Code
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Details Stats Modal viewer */}
+      {activeStatModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.2s_ease-out] overflow-y-auto">
+          <Card className="max-w-2xl w-full !bg-white border-2 border-primary space-y-6 !p-6 relative shadow-brutal-md max-h-[90vh] overflow-y-auto" dogEar>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b-2 border-primary pb-3">
+              <h3 className="font-anton text-lg uppercase tracking-wide text-primary flex items-center gap-2">
+                <TrendingUp size={20} className="text-secondary" />
+                {activeStatModal === 'clicks' && 'Clicks Traffic Log Detail'}
+                {activeStatModal === 'visits' && 'Visitor Log Detail'}
+                {activeStatModal === 'browser' && 'Client Browser Profile Detail'}
+                {activeStatModal === 'device' && 'Visitor Device Profile Detail'}
+              </h3>
+              <button
+                onClick={() => setActiveStatModal(null)}
+                className="text-primary hover:text-secondary transition-colors"
+                title="Close stats modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="space-y-4">
+              {activeStatModal === 'clicks' && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div id="clicks-chart-container" className="h-64 w-full border border-primary/15 bg-surface-container-low/20 p-2 rounded-lg">
+                      {trends.some(t => t.clicks > 0) ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={trends} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0, 50, 45, 0.05)" />
+                            <XAxis dataKey="formattedDate" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Inter, sans-serif', fill: 'rgba(0, 50, 45, 0.6)' }} />
+                            <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Inter, sans-serif', fill: 'rgba(0, 50, 45, 0.6)' }} />
+                            <Tooltip contentStyle={tooltipStyle} />
+                            <Line type="monotone" dataKey="clicks" stroke="#00322d" strokeWidth={2} dot={{ stroke: '#00322d', strokeWidth: 1, r: 2.5, fill: 'white' }} activeDot={{ r: 4 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-xs font-semibold text-on-surface-variant uppercase">No click history logged</div>
+                      )}
+                    </div>
+                    {trends.some(t => t.clicks > 0) && (
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadChart('clicks-chart-container', 'Clicks')}
+                          className="px-3 py-1 border border-primary bg-white text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low transition-colors cursor-pointer"
+                        >
+                          Download Chart
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareChart('clicks-chart-container', 'Clicks')}
+                          className="px-3 py-1 border border-primary bg-primary text-xs font-bold uppercase tracking-wider text-white hover:bg-primary/95 transition-colors cursor-pointer"
+                        >
+                          Share Chart
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="overflow-x-auto border border-primary/10 rounded-lg">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary bg-surface-container-low/40">
+                          <th className="p-2 font-bold">Date</th>
+                          <th className="p-2 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {trends.map((t, idx) => (
+                          <tr key={t.date} className={idx % 2 === 0 ? '' : 'bg-surface-container-low/20'}>
+                            <td className="p-2 font-bold text-primary">{t.formattedDate || t.date}</td>
+                            <td className="p-2 text-right font-bold text-primary font-mono">{t.clicks}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeStatModal === 'browser' && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div id="browser-chart-container" className="h-64 w-full border border-primary/15 bg-surface-container-low/20 p-2 rounded-lg flex items-center justify-center">
+                      {browsers.some(b => b.value > 0) ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={browsers.filter(b => b.value > 0)} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value">
+                              {browsers.filter(b => b.value > 0).map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % 6]} />
+                              ))}
+                            </Pie>
+                            <Tooltip contentStyle={tooltipStyle} />
+                            <Legend verticalAlign="bottom" height={36} iconType="square" iconSize={8} wrapperStyle={{ fontSize: '10px', fontFamily: 'Space Mono' }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="text-xs font-semibold text-on-surface-variant uppercase">No browser clicks recorded</div>
+                      )}
+                    </div>
+                    {browsers.some(b => b.value > 0) && (
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadChart('browser-chart-container', 'Browser Breakdown')}
+                          className="px-3 py-1 border border-primary bg-white text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low transition-colors cursor-pointer"
+                        >
+                          Download Chart
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareChart('browser-chart-container', 'Browser Breakdown')}
+                          className="px-3 py-1 border border-primary bg-primary text-xs font-bold uppercase tracking-wider text-white hover:bg-primary/95 transition-colors cursor-pointer"
+                        >
+                          Share Chart
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="overflow-x-auto border border-primary/10 rounded-lg">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary bg-surface-container-low/40">
+                          <th className="p-2 font-bold">Browser</th>
+                          <th className="p-2 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {browsers.map((b, idx) => (
+                          <tr key={b.name} className={idx % 2 === 0 ? '' : 'bg-surface-container-low/20'}>
+                            <td className="p-2 font-bold text-primary">{b.name}</td>
+                            <td className="p-2 text-right font-bold text-primary font-mono">{b.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeStatModal === 'device' && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div id="device-chart-container" className="h-64 w-full border border-primary/15 bg-surface-container-low/20 p-2 rounded-lg">
+                      {devices.some(d => d.value > 0) ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={devices} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d8dbd6" />
+                            <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                            <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                            <Tooltip cursor={{ fill: 'rgba(44, 105, 86, 0.05)' }} contentStyle={tooltipStyle} />
+                            <Bar dataKey="value" fill="#00322d" radius={[0, 0, 0, 0]} barSize={28}>
+                              {devices.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={CHART_COLORS[(index + 1) % CHART_COLORS.length]} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-xs font-semibold text-on-surface-variant uppercase">No device clicks recorded</div>
+                      )}
+                    </div>
+                    {devices.some(d => d.value > 0) && (
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadChart('device-chart-container', 'Device Breakdown')}
+                          className="px-3 py-1 border border-primary bg-white text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low transition-colors cursor-pointer"
+                        >
+                          Download Chart
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareChart('device-chart-container', 'Device Breakdown')}
+                          className="px-3 py-1 border border-primary bg-primary text-xs font-bold uppercase tracking-wider text-white hover:bg-primary/95 transition-colors cursor-pointer"
+                        >
+                          Share Chart
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="overflow-x-auto border border-primary/10 rounded-lg">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary bg-surface-container-low/40">
+                          <th className="p-2 font-bold">Device</th>
+                          <th className="p-2 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {devices.map((d, idx) => (
+                          <tr key={d.name} className={idx % 2 === 0 ? '' : 'bg-surface-container-low/20'}>
+                            <td className="p-2 font-bold text-primary">{d.name}</td>
+                            <td className="p-2 text-right font-bold text-primary font-mono">{d.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeStatModal === 'visits' && (
+                <div className="space-y-4">
+                  <div className="max-h-[50vh] overflow-y-auto border border-primary/15 rounded-lg">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="bg-surface-container-low text-primary border-b border-primary/10 text-[10px] font-bold uppercase tracking-wider">
+                          <th className="p-3">Timestamp</th>
+                          <th className="p-3">IP Address</th>
+                          <th className="p-3">Browser</th>
+                          <th className="p-3">Device</th>
+                          <th className="p-3">Country</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/15 bg-white">
+                        {visits.map((visit, idx) => (
+                          <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/30'}>
+                            <td className="p-3 text-on-surface-variant font-medium">{new Date(visit.clickedAt).toLocaleString()}</td>
+                            <td className="p-3 text-primary font-semibold font-mono">{visit.ip}</td>
+                            <td className="p-3 text-on-surface-variant font-semibold">{visit.browser}</td>
+                            <td className="p-3 text-on-surface-variant font-semibold">{visit.device}</td>
+                            <td className="p-3 text-on-surface-variant font-semibold">{visit.country || 'Unknown'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-primary/10 pt-4 flex justify-end">
+              <Button onClick={() => setActiveStatModal(null)} size="md">
+                Close Viewer
+              </Button>
+            </div>
+          </Card>
+        </div>
       )}
     </motion.div>
   )

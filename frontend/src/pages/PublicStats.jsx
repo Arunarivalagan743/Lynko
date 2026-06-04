@@ -20,7 +20,8 @@ import {
   Users,
   Share2,
   CheckCircle2,
-  Lightbulb
+  Lightbulb,
+  X
 } from 'lucide-react'
 import {
   ResponsiveContainer,
@@ -66,6 +67,7 @@ export default function PublicStatsPage() {
 
   // Local lookup search input
   const [searchInput, setSearchInput] = useState('')
+  const [activeStatModal, setActiveStatModal] = useState(null)
 
   // Fetch stats when shortCode changes
   useEffect(() => {
@@ -87,6 +89,88 @@ export default function PublicStatsPage() {
     const statsUrl = `${window.location.origin}/stats/${shortCode}`
     navigator.clipboard.writeText(statsUrl)
     toast.success('Stats report link copied to clipboard!')
+  }
+
+  const exportChartAsPng = (containerId) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const container = document.getElementById(containerId)
+        if (!container) return reject(new Error('Container not found'))
+        const svgElement = container.querySelector('svg')
+        if (!svgElement) return reject(new Error('SVG not found'))
+
+        const svgString = new XMLSerializer().serializeToString(svgElement)
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
+        const URL = window.URL || window.webkitURL || window
+        const blobURL = URL.createObjectURL(svgBlob)
+
+        const image = new Image()
+        image.onload = () => {
+          const canvas = document.createElement('canvas')
+          const bbox = svgElement.getBoundingClientRect()
+          canvas.width = bbox.width * 2
+          canvas.height = bbox.height * 2
+          const context = canvas.getContext('2d')
+          context.scale(2, 2)
+          
+          context.fillStyle = '#ffffff'
+          context.fillRect(0, 0, bbox.width, bbox.height)
+          context.drawImage(image, 0, 0, bbox.width, bbox.height)
+          
+          const pngDataUrl = canvas.toDataURL('image/png')
+          URL.revokeObjectURL(blobURL)
+          resolve(pngDataUrl)
+        }
+        image.onerror = (err) => {
+          URL.revokeObjectURL(blobURL)
+          reject(err)
+        }
+        image.src = blobURL
+      } catch (err) {
+        reject(err)
+      }
+    })
+  }
+
+  const handleDownloadChart = async (containerId, title) => {
+    try {
+      const dataUrl = await exportChartAsPng(containerId)
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `${title.toLowerCase().replace(/\s+/g, '_')}_chart.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      toast.success('Chart image downloaded!')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to export chart image.')
+    }
+  }
+
+  const handleShareChart = async (containerId, title) => {
+    try {
+      const dataUrl = await exportChartAsPng(containerId)
+      if (navigator.share) {
+        const response = await fetch(dataUrl)
+        const blob = await response.blob()
+        const file = new File([blob], `${title.toLowerCase().replace(/\s+/g, '_')}_chart.png`, { type: 'image/png' })
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `${title} Chart Report`,
+            text: `Traffic analytics data report for short code /${shortCode}`,
+          })
+          toast.success('Chart shared successfully!')
+          return
+        }
+      }
+      toast.error('Native sharing of files is not supported on this browser.')
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to share chart.')
+    }
   }
 
   // Render search lookup card if no short code is specified in the route
@@ -254,7 +338,7 @@ export default function PublicStatsPage() {
           >
             {/* Total Clicks */}
             <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-              <Card className="flex flex-col justify-between p-4 space-y-2 bg-white h-full" shadowSize="sm">
+              <Card onClick={() => setActiveStatModal('clicks')} className="flex flex-col justify-between p-4 space-y-2 bg-white h-full cursor-pointer hover:border-primary transition-colors" shadowSize="sm">
                 <div className="flex items-center justify-between text-primary">
                   <span className="font-space text-xs font-bold uppercase tracking-wider">Total Clicks</span>
                   <TrendingUp size={16} />
@@ -268,7 +352,7 @@ export default function PublicStatsPage() {
 
             {/* Top Browser */}
             <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-              <Card className="flex flex-col justify-between p-4 space-y-2 bg-secondary-container h-full" shadowSize="sm">
+              <Card onClick={() => setActiveStatModal('browser')} className="flex flex-col justify-between p-4 space-y-2 bg-secondary-container h-full cursor-pointer hover:border-primary transition-colors" shadowSize="sm">
                 <div className="flex items-center justify-between text-primary">
                   <span className="font-space text-xs font-bold uppercase tracking-wider">Top Browser</span>
                   <Monitor size={16} />
@@ -282,7 +366,7 @@ export default function PublicStatsPage() {
 
             {/* Top Device */}
             <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-              <Card className="flex flex-col justify-between p-4 space-y-2 bg-tertiary-container h-full" shadowSize="sm">
+              <Card onClick={() => setActiveStatModal('device')} className="flex flex-col justify-between p-4 space-y-2 bg-tertiary-container h-full cursor-pointer hover:border-primary transition-colors" shadowSize="sm">
                 <div className="flex items-center justify-between text-tertiary">
                   <span className="font-space text-xs font-bold uppercase tracking-wider text-tertiary">Top Device</span>
                   <Monitor size={16} className="text-tertiary" />
@@ -296,7 +380,7 @@ export default function PublicStatsPage() {
 
             {/* Traffic Quality */}
             <motion.div variants={itemVariants} whileHover={{ y: -4, scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-              <Card className="flex flex-col justify-between p-4 space-y-2 bg-error-container h-full" shadowSize="sm">
+              <Card onClick={() => setActiveStatModal('quality')} className="flex flex-col justify-between p-4 space-y-2 bg-error-container h-full cursor-pointer hover:border-primary transition-colors" shadowSize="sm">
                 <div className="flex items-center justify-between text-error">
                   <span className="font-space text-xs font-bold uppercase tracking-wider text-error">Traffic Quality</span>
                   <Users size={16} />
@@ -375,7 +459,7 @@ export default function PublicStatsPage() {
                 </h2>
                 <div className="space-y-4">
                   {/* Browser Pie Chart */}
-                  <div className="h-60 w-full flex items-center justify-center">
+                  <div onClick={() => setActiveStatModal('browser')} className="h-60 w-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" title="Click to view/download/share chart">
                     {stats.browsers.some(b => b.value > 0) ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -437,7 +521,7 @@ export default function PublicStatsPage() {
                 </h2>
                 <div className="space-y-4">
                   {/* Device Bar Chart */}
-                  <div className="h-60 w-full flex items-center justify-center">
+                  <div onClick={() => setActiveStatModal('device')} className="h-60 w-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" title="Click to view/download/share chart">
                     {stats.devices.some(d => d.value > 0) ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={stats.devices} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
@@ -490,7 +574,7 @@ export default function PublicStatsPage() {
                 </h2>
                 <div className="space-y-4">
                   {/* Daily Trends Line Chart */}
-                  <div className="h-60 w-full flex items-center justify-center">
+                  <div onClick={() => setActiveStatModal('clicks')} className="h-60 w-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity" title="Click to view/download/share chart">
                     {stats.trends.some(t => t.clicks > 0) ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={stats.trends} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
@@ -542,6 +626,243 @@ export default function PublicStatsPage() {
           </motion.div>
         </>
       ) : null}
+
+      {/* Details Stats Modal viewer */}
+      {activeStatModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.2s_ease-out] overflow-y-auto">
+          <Card className="max-w-2xl w-full !bg-white border-2 border-primary space-y-6 !p-6 relative shadow-brutal-md max-h-[90vh] overflow-y-auto" dogEar>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b-2 border-primary pb-3">
+              <h3 className="font-anton text-lg uppercase tracking-wide text-primary flex items-center gap-2">
+                <BarChart2 size={20} className="text-secondary" />
+                {activeStatModal === 'clicks' && 'Clicks Traffic Log Detail'}
+                {activeStatModal === 'browser' && 'Client Browser Profile Detail'}
+                {activeStatModal === 'device' && 'Visitor Device Profile Detail'}
+                {activeStatModal === 'quality' && 'Traffic Health & Quality Detail'}
+              </h3>
+              <button
+                onClick={() => setActiveStatModal(null)}
+                className="text-primary hover:text-secondary transition-colors"
+                title="Close stats modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body depending on mode */}
+            <div className="space-y-4">
+              {activeStatModal === 'clicks' && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div id="clicks-chart-container" className="h-64 w-full border border-primary/15 bg-surface-container-low/20 p-2 rounded-lg">
+                      {stats.trends.some(t => t.clicks > 0) ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={stats.trends} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d8dbd6" />
+                            <XAxis dataKey="formattedDate" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                            <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                            <Tooltip contentStyle={{ background: '#f8faf5', border: '2px solid #00322d', fontSize: '11px', fontFamily: 'Space Mono', color: '#00322d' }} />
+                            <Line type="monotone" dataKey="clicks" stroke="#00322d" strokeWidth={2} dot={{ stroke: '#00322d', strokeWidth: 1, r: 2.5, fill: 'white' }} activeDot={{ r: 4 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-xs font-semibold text-on-surface-variant uppercase">No click history logged</div>
+                      )}
+                    </div>
+                    {stats.trends.some(t => t.clicks > 0) && (
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadChart('clicks-chart-container', 'Clicks')}
+                          className="px-3 py-1 border border-primary bg-white text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low transition-colors cursor-pointer"
+                        >
+                          Download Chart
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareChart('clicks-chart-container', 'Clicks')}
+                          className="px-3 py-1 border border-primary bg-primary text-xs font-bold uppercase tracking-wider text-white hover:bg-primary/95 transition-colors cursor-pointer"
+                        >
+                          Share Chart
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="overflow-x-auto border border-primary/10 rounded-lg">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary bg-surface-container-low/40">
+                          <th className="p-2 font-bold">Date</th>
+                          <th className="p-2 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {stats.trends.map((t, idx) => (
+                          <tr key={t.date} className={idx % 2 === 0 ? '' : 'bg-surface-container-low/20'}>
+                            <td className="p-2 font-bold text-primary">{t.formattedDate || t.date}</td>
+                            <td className="p-2 text-right font-bold text-primary font-mono">{t.clicks}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeStatModal === 'browser' && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div id="browser-chart-container" className="h-64 w-full border border-primary/15 bg-surface-container-low/20 p-2 rounded-lg flex items-center justify-center">
+                      {stats.browsers.some(b => b.value > 0) ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={stats.browsers.filter(b => b.value > 0)} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={3} dataKey="value">
+                              {stats.browsers.filter(b => b.value > 0).map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={['#00322d', '#2c6956', '#636037', '#ba1a1a', '#004b44', '#bfc9c6'][index % 6]} />
+                              ))}
+                            </Pie>
+                            <Tooltip contentStyle={{ background: '#f8faf5', border: '2px solid #00322d', fontSize: '11px', fontFamily: 'Space Mono', color: '#00322d' }} />
+                            <Legend verticalAlign="bottom" height={36} iconType="square" iconSize={8} wrapperStyle={{ fontSize: '10px', fontFamily: 'Space Mono' }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="text-xs font-semibold text-on-surface-variant uppercase">No browser clicks recorded</div>
+                      )}
+                    </div>
+                    {stats.browsers.some(b => b.value > 0) && (
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadChart('browser-chart-container', 'Browser Breakdown')}
+                          className="px-3 py-1 border border-primary bg-white text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low transition-colors cursor-pointer"
+                        >
+                          Download Chart
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareChart('browser-chart-container', 'Browser Breakdown')}
+                          className="px-3 py-1 border border-primary bg-primary text-xs font-bold uppercase tracking-wider text-white hover:bg-primary/95 transition-colors cursor-pointer"
+                        >
+                          Share Chart
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="overflow-x-auto border border-primary/10 rounded-lg">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary bg-surface-container-low/40">
+                          <th className="p-2 font-bold">Browser</th>
+                          <th className="p-2 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {stats.browsers.map((b, idx) => (
+                          <tr key={b.name} className={idx % 2 === 0 ? '' : 'bg-surface-container-low/20'}>
+                            <td className="p-2 font-bold text-primary">{b.name}</td>
+                            <td className="p-2 text-right font-bold text-primary font-mono">{b.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeStatModal === 'device' && (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div id="device-chart-container" className="h-64 w-full border border-primary/15 bg-surface-container-low/20 p-2 rounded-lg">
+                      {stats.devices.some(d => d.value > 0) ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={stats.devices} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d8dbd6" />
+                            <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                            <YAxis tickLine={false} axisLine={false} fontSize={10} stroke="#00322d" style={{ fontFamily: 'Space Mono', fontWeight: 'bold' }} />
+                            <Tooltip cursor={{ fill: 'rgba(44, 105, 86, 0.05)' }} contentStyle={{ background: '#f8faf5', border: '2px solid #00322d', fontSize: '11px', fontFamily: 'Space Mono', color: '#00322d' }} />
+                            <Bar dataKey="value" fill="#00322d" radius={[0, 0, 0, 0]} barSize={28} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-xs font-semibold text-on-surface-variant uppercase">No device clicks recorded</div>
+                      )}
+                    </div>
+                    {stats.devices.some(d => d.value > 0) && (
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadChart('device-chart-container', 'Device Breakdown')}
+                          className="px-3 py-1 border border-primary bg-white text-xs font-bold uppercase tracking-wider text-primary hover:bg-surface-container-low transition-colors cursor-pointer"
+                        >
+                          Download Chart
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareChart('device-chart-container', 'Device Breakdown')}
+                          className="px-3 py-1 border border-primary bg-primary text-xs font-bold uppercase tracking-wider text-white hover:bg-primary/95 transition-colors cursor-pointer"
+                        >
+                          Share Chart
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="overflow-x-auto border border-primary/10 rounded-lg">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-primary font-space text-[10px] font-bold uppercase text-primary bg-surface-container-low/40">
+                          <th className="p-2 font-bold">Device</th>
+                          <th className="p-2 font-bold text-right">Clicks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-primary/20">
+                        {stats.devices.map((d, idx) => (
+                          <tr key={d.name} className={idx % 2 === 0 ? '' : 'bg-surface-container-low/20'}>
+                            <td className="p-2 font-bold text-primary">{d.name}</td>
+                            <td className="p-2 text-right font-bold text-primary font-mono">{d.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeStatModal === 'quality' && (
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="border border-primary/20 p-4 bg-surface-container-low rounded-md">
+                      <p className="text-[10px] font-semibold uppercase text-on-surface-variant tracking-wider">Human Clicks</p>
+                      <p className="text-3xl font-anton text-primary">{stats.humanClicks || 0}</p>
+                    </div>
+                    <div className="border border-primary/20 p-4 bg-surface-container-low rounded-md">
+                      <p className="text-[10px] font-semibold uppercase text-on-surface-variant tracking-wider">Bot Clicks</p>
+                      <p className="text-3xl font-anton text-error">{stats.botClicks || 0}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-4 bg-surface-container-low border border-primary border-t-4">
+                    <CheckCircle2 size={20} className="text-secondary mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold font-space uppercase text-primary">Traffic Verification health</h4>
+                      <p className="text-xs text-on-surface-variant leading-relaxed">
+                        {qualityScore >= 80 
+                          ? `Excellent health! ${qualityScore}% of redirection visits are verified human interactions with minimal automated crawlers.` 
+                          : `Warning: Heavy crawler crawler activity detected. ${100 - qualityScore}% of actions originate from spiders, crawlers, or automated requests.`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-primary/10 pt-4 flex justify-end">
+              <Button onClick={() => setActiveStatModal(null)} size="md">
+                Close Viewer
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </motion.div>
   )
 }

@@ -73,6 +73,52 @@ export default function UrlsPage() {
   const [expandedPlatformLinks, setExpandedPlatformLinks] = useState({})
   const [showCreatePlatforms, setShowCreatePlatforms] = useState(false)
   const [showEditPlatforms, setShowEditPlatforms] = useState(false)
+  const [activeQrModal, setActiveQrModal] = useState(null)
+
+  const handleShareQr = async (qrDataUrl, shortCode, shortUrl) => {
+    if (navigator.share) {
+      try {
+        const response = await fetch(qrDataUrl)
+        const blob = await response.blob()
+        const file = new File([blob], `qr_${shortCode}.png`, { type: 'image/png' })
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `QR Code for /${shortCode}`,
+            text: `Scan to visit: ${shortUrl}`,
+          })
+          toast.success('Shared successfully!')
+          return
+        }
+      } catch (err) {
+        console.error('Error preparing file share:', err)
+      }
+
+      try {
+        await navigator.share({
+          title: `QR Code for /${shortCode}`,
+          text: `Scan to visit: ${shortUrl}`,
+          url: shortUrl,
+        })
+        toast.success('Shared successfully!')
+        return
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Share failed:', err)
+        } else {
+          return
+        }
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shortUrl)
+      toast.success('Link copied to clipboard! (Web Share API not supported)')
+    } catch (err) {
+      toast.error('Could not copy link.')
+    }
+  }
 
   const editingLink = useMemo(
     () => urls.find((link) => link._id === editingId) || null,
@@ -362,17 +408,15 @@ export default function UrlsPage() {
                                 >
                                   <ExternalLink size={11} />
                                 </a>
-                                <a
-                                  href={qrUrl}
-                                  download={`qr_${createdUrlResult.shortCode}_${pLink.platform}.png`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="p-1 border border-primary bg-white hover:bg-surface-container-low text-primary"
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveQrModal({ shortCode: `${createdUrlResult.shortCode}_${pLink.platform}`, qrUrl, shortUrl: pLink.shortUrl })}
+                                  className="p-1 border border-primary bg-white hover:bg-surface-container-low text-primary cursor-pointer"
                                   title="QR Code"
                                   aria-label="QR Code"
                                 >
                                   <QrCode size={11} />
-                                </a>
+                                </button>
                               </div>
                             </div>
                             <p className="text-[11px] font-medium text-on-surface-variant break-all select-all font-sans leading-normal">
@@ -720,19 +764,18 @@ export default function UrlsPage() {
                                 <p className="text-2xl sm:text-3xl font-anton text-primary leading-tight">{link.clickCount || 0}</p>
                               </div>
 
-                              {/* QR Preview with Hover Overlays */}
-                              <div className="relative group border border-primary/20 bg-white p-1 rounded-md shadow-sm flex-shrink-0" title="QR Code Preview">
+                              {/* QR Preview Clickable to Open Viewer/Downloader/Sharer */}
+                              <button
+                                type="button"
+                                onClick={() => setActiveQrModal({ shortCode: link.shortCode, qrUrl, shortUrl })}
+                                className="relative group border border-primary/20 bg-white p-1 rounded-md shadow-sm flex-shrink-0 hover:border-primary transition-colors cursor-pointer"
+                                title="Click to view/download/share QR Code"
+                              >
                                 <img src={qrUrl} alt="QR" className="h-12 w-12 object-contain" />
-                                <a
-                                  href={qrUrl}
-                                  download={`qr_${link.shortCode}.png`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="absolute inset-0 bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md text-[9px] text-white font-semibold uppercase"
-                                >
-                                  Get
-                                </a>
-                              </div>
+                                <div className="absolute inset-0 bg-primary/95 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md text-[9px] text-white font-semibold uppercase">
+                                  View
+                                </div>
+                              </button>
                             </div>
 
                             {/* Main Action Group (Edit, Analytics, Delete) */}
@@ -861,17 +904,15 @@ export default function UrlsPage() {
                                           >
                                             <ExternalLink size={11} />
                                           </a>
-                                          <a
-                                            href={platformQrUrl}
-                                            download={`qr_${link.shortCode}_${p}.png`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="p-1 border border-primary/10 rounded hover:bg-surface-container-low text-primary"
+                                          <button
+                                            type="button"
+                                            onClick={() => setActiveQrModal({ shortCode: `${link.shortCode}_${p}`, qrUrl: platformQrUrl, shortUrl: platformUrl })}
+                                            className="p-1 border border-primary/10 rounded hover:bg-surface-container-low text-primary cursor-pointer"
                                             title="QR Code"
                                             aria-label="QR Code"
                                           >
                                             <QrCode size={11} />
-                                          </a>
+                                          </button>
                                           <button
                                             type="button"
                                             onClick={handleRemovePlatform}
@@ -929,6 +970,58 @@ export default function UrlsPage() {
         onConfirm={handleConfirmAction}
         onCancel={closeConfirm}
       />
+
+      {/* QR Code Viewer, Downloader, & Sharer Modal */}
+      {activeQrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.2s_ease-out]">
+          <Card className="max-w-md w-full !bg-white border-2 border-primary space-y-6 !p-6 relative shadow-brutal-md" dogEar>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b-2 border-primary pb-3">
+              <h3 className="font-anton text-lg uppercase tracking-wide text-primary flex items-center gap-2">
+                <QrCode size={20} className="text-secondary" />
+                QR Code: /{activeQrModal.shortCode}
+              </h3>
+              <button
+                onClick={() => setActiveQrModal(null)}
+                className="text-primary hover:text-secondary transition-colors"
+                title="Close Modal"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* QR Body */}
+            <div className="flex flex-col items-center justify-center py-4 bg-surface-container-low/35 border border-dashed border-primary/25 rounded-md">
+              <img
+                src={activeQrModal.qrUrl}
+                alt={`QR Code for ${activeQrModal.shortCode}`}
+                className="h-48 w-48 object-contain bg-white p-2 border-2 border-primary shadow-brutal-xs"
+              />
+              <p className="mt-4 font-mono text-xs font-semibold text-text-muted break-all text-center max-w-[85%] select-all">
+                {activeQrModal.shortUrl}
+              </p>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <a
+                href={activeQrModal.qrUrl}
+                download={`qr_${activeQrModal.shortCode}.png`}
+                className="flex-1 text-center py-3 border-2 border-primary bg-secondary text-primary font-space text-xs font-bold uppercase tracking-wider hover:bg-secondary/90 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-brutal-xs active:translate-x-0 active:translate-y-0 active:shadow-none transition-all cursor-pointer block"
+              >
+                Download PNG
+              </a>
+              <Button
+                onClick={() => handleShareQr(activeQrModal.qrUrl, activeQrModal.shortCode, activeQrModal.shortUrl)}
+                variant="primary"
+                className="flex-1"
+              >
+                Share QR Code
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </motion.div>
   )
 }

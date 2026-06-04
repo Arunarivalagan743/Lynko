@@ -326,16 +326,16 @@ npm run dev
 ## 🖼️ Application Screenshots & Sample Outputs
 Below are the actual screenshots of our retro-brutalist dashboard, link tracking analytics, bulk creation, and setting layouts:
 
-- **Dashboard Workspace**:
+
+
   ![Dashboard](./frontend/src/assets/Output/Screenshot%202026-06-03%20220729.png)
   ![Dashboard Layout](./frontend/src/assets/Output/Screenshot%202026-06-03%20220747.png)
 
-- **Detailed Analytics Dashboard**:
+
   ![Analytics Logs](./frontend/src/assets/Output/Screenshot%202026-06-03%20220805.png)
   ![Traffic Analytics](./frontend/src/assets/Output/Screenshot%202026-06-03%20220844.png)
   ![Link Telemetry Chart](./frontend/src/assets/Output/Screenshot%202026-06-03%20220903.png)
 
-- **Utility Pages & Forms**:
   ![Bulk Import CSV](./frontend/src/assets/Output/Screenshot%202026-06-03%20220938.png)
   ![Account Profile Settings](./frontend/src/assets/Output/Screenshot%202026-06-03%20220958.png)
   ![Custom Integrations](./frontend/src/assets/Output/Screenshot%202026-06-03%20221016.png)
