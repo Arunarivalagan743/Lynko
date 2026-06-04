@@ -59,9 +59,9 @@ const ConfirmDialog = ({
               <p className="text-sm font-medium text-on-surface-variant">{description}</p>
             )}
             {details.length > 0 && (
-              <div className="border border-primary/20 bg-surface-container-low px-4 py-3 text-xs rounded-md text-primary font-medium">
+              <div className="border border-primary/20 bg-surface-container-low px-4 py-3 text-xs rounded-md text-primary font-medium break-all">
                 {details.map((item) => (
-                  <div key={item}>{item}</div>
+                  <div key={item} className="break-all">{item}</div>
                 ))}
               </div>
             )}
