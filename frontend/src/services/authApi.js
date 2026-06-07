@@ -20,13 +20,13 @@ export const resetPassword = async (payload) => {
   return response.data
 }
 
-export const logout = async (payload) => {
-  const response = await api.post('/api/auth/logout', payload)
+export const logout = async () => {
+  const response = await api.post('/api/auth/logout')
   return response.data
 }
 
-export const refreshToken = async (payload) => {
-  const response = await api.post('/api/auth/refresh', payload)
+export const refreshToken = async () => {
+  const response = await api.post('/api/auth/refresh')
   return response.data
 }
 

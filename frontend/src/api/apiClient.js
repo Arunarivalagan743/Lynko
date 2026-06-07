@@ -9,6 +9,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 })
 
 // Callbacks injected from AuthContext to decouple auth states from the HTTP layer

@@ -11,35 +11,6 @@ import { injectAuthActions } from '../api/apiClient.js'
 
 const AuthContext = createContext(null)
 
-const STORAGE_KEY = 'lynko_refresh_token_hint'
-
-const readStoredRefreshHint = () => {
-  if (typeof window === 'undefined') return null
-  try {
-    return window.localStorage.getItem(STORAGE_KEY)
-  } catch (_err) {
-    return null
-  }
-}
-
-const writeStoredRefreshHint = (token) => {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(STORAGE_KEY, token)
-  } catch (_err) {
-    // Ignore storage issues
-  }
-}
-
-const clearStoredRefreshHint = () => {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.removeItem(STORAGE_KEY)
-  } catch (_err) {
-    // Ignore storage issues
-  }
-}
-
 export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
     user: null,
@@ -68,7 +39,6 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       // Clear session if user loading fails (indicates invalid token session)
       setAuthToken(null)
-      clearStoredRefreshHint()
       setAuthState({
         user: null,
         accessToken: null,
@@ -78,21 +48,14 @@ export const AuthProvider = ({ children }) => {
     }
   }, [])
 
-  // Refreshes the session using the stored refresh token
+  // Refreshes the session using the HttpOnly cookie automatic transmission
   const refreshSession = useCallback(async () => {
-    const storedToken = readStoredRefreshHint()
-    if (!storedToken) {
-      setAuthState((prev) => ({ ...prev, isInitializing: false }))
-      return null
-    }
-
     try {
-      const response = await refreshRequest({ refreshToken: storedToken })
-      const { accessToken, refreshToken: newRefreshToken } = response
+      const response = await refreshRequest()
+      const { accessToken } = response
 
       // Store new access token in memory & update HTTP client defaults
       setAuthToken(accessToken)
-      writeStoredRefreshHint(newRefreshToken)
 
       setAuthState((prev) => ({
         ...prev,
@@ -112,7 +75,6 @@ export const AuthProvider = ({ children }) => {
       return { accessToken, user: parsedUser }
     } catch (err) {
       setAuthToken(null)
-      clearStoredRefreshHint()
       setAuthState({
         user: null,
         accessToken: null,
@@ -127,10 +89,9 @@ export const AuthProvider = ({ children }) => {
     setAuthActionLoading(true)
     try {
       const response = await loginRequest(payload)
-      const { user, accessToken, refreshToken } = response
+      const { user, accessToken } = response
 
       setAuthToken(accessToken)
-      writeStoredRefreshHint(refreshToken)
 
       setAuthState({
         user: user || null,
@@ -149,11 +110,10 @@ export const AuthProvider = ({ children }) => {
     setAuthActionLoading(true)
     try {
       const response = await signupRequest(payload)
-      const { user, accessToken, refreshToken } = response
+      const { user, accessToken } = response
 
-      if (accessToken && refreshToken) {
+      if (accessToken) {
         setAuthToken(accessToken)
-        writeStoredRefreshHint(refreshToken)
 
         setAuthState({
           user: user || null,
@@ -171,16 +131,12 @@ export const AuthProvider = ({ children }) => {
   // User Logout Action
   const logout = useCallback(async () => {
     setAuthActionLoading(true)
-    const storedToken = readStoredRefreshHint()
     try {
-      if (storedToken) {
-        await logoutRequest({ refreshToken: storedToken })
-      }
+      await logoutRequest()
     } catch (_err) {
       // Clear client state even if backend API revocation call fails
     } finally {
       setAuthToken(null)
-      clearStoredRefreshHint()
       setAuthState({
         user: null,
         accessToken: null,
