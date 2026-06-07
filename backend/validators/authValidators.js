@@ -25,11 +25,18 @@ const resetPasswordSchema = z.object({
   password: z.string().min(8).max(72),
 });
 
+const refreshCookieSchema = z.object({
+  refreshToken: z.string({
+    required_error: "Refresh token is required",
+  }).min(20),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
   refreshSchema,
   logoutSchema,
+  refreshCookieSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 };

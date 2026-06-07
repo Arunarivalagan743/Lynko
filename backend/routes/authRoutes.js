@@ -11,8 +11,7 @@ const {
 const {
 	registerSchema,
 	loginSchema,
-	refreshSchema,
-	logoutSchema,
+	refreshCookieSchema,
 	forgotPasswordSchema,
 	resetPasswordSchema,
 } = require("../validators/authValidators");
@@ -24,8 +23,8 @@ const router = express.Router();
 
 router.post("/signup", authLimiter, validate(registerSchema), register);
 router.post("/login", authLimiter, validate(loginSchema), login);
-router.post("/refresh", validate(refreshSchema), refresh);
-router.post("/logout", validate(logoutSchema), logout);
+router.post("/refresh", validate(refreshCookieSchema, "cookies"), refresh);
+router.post("/logout", validate(refreshCookieSchema, "cookies"), logout);
 router.post("/logout-all", authenticate, logoutAll);
 router.post(
 	"/forgot-password",

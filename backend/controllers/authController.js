@@ -9,6 +9,19 @@ const {
 } = require("../services/authService");
 const { env } = require("../config/env");
 
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+const CLEAR_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+};
+
 const register = async (req, res, next) => {
   try {
     const { user, accessToken, refreshToken } = await registerUser(
@@ -19,10 +32,11 @@ const register = async (req, res, next) => {
       }
     );
 
+    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+
     return res.status(201).json({
       user,
       accessToken,
-      refreshToken,
     });
   } catch (err) {
     return next(err);
@@ -36,10 +50,11 @@ const login = async (req, res, next) => {
       userAgent: req.headers["user-agent"],
     });
 
+    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+
     return res.status(200).json({
       user,
       accessToken,
-      refreshToken,
     });
   } catch (err) {
     return next(err);
@@ -48,13 +63,17 @@ const login = async (req, res, next) => {
 
 const refresh = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
     const tokens = await rotateRefreshToken(refreshToken, {
       ip: req.ip,
       userAgent: req.headers["user-agent"],
     });
 
-    return res.status(200).json(tokens);
+    res.cookie("refreshToken", tokens.refreshToken, COOKIE_OPTIONS);
+
+    return res.status(200).json({
+      accessToken: tokens.accessToken,
+    });
   } catch (err) {
     return next(err);
   }
@@ -62,8 +81,12 @@ const refresh = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
-    await revokeRefreshToken(refreshToken);
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      await revokeRefreshToken(refreshToken);
+    }
+
+    res.clearCookie("refreshToken", CLEAR_COOKIE_OPTIONS);
 
     return res.status(200).json({ message: "Logged out" });
   } catch (err) {

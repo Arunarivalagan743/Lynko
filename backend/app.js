@@ -5,11 +5,14 @@ const { env } = require("./config/env");
 const { registerRoutes } = require("./routes");
 const { errorHandler } = require("./middleware/errorHandler");
 
+const { cookieParser, mongoSanitize, xssSanitize, csrfProtect } = require("./middleware/security");
+
 const app = express();
 
 app.set("trust proxy", 1);
 
 app.use(express.json());
+app.use(cookieParser);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -24,6 +27,9 @@ app.use(
   })
 );
 app.use(helmet());
+app.use(mongoSanitize);
+app.use(xssSanitize);
+app.use(csrfProtect);
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is healthy" });
