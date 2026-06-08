@@ -1,31 +1,90 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import "tailwindcss";
 
+@theme {
+  --color-background: #f8faf5;
+  --color-surface: #f8faf5;
+  --color-border: #00322d;
+  --color-primary: #00322d;
+  --color-secondary: #2c6956;
+  --color-success: #2c6956;
+  --color-warning: #636037;
+  --color-error: #ba1a1a;
+  --color-text: #191c1a;
+  --color-text-muted: #3f4947;
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+  --color-surface-dim: #d8dbd6;
+  --color-surface-bright: #f8faf5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4ef;
+  --color-surface-container: #ecefea;
+  --color-surface-container-high: #e7e9e4;
+  --color-surface-container-highest: #e1e3de;
+  --color-on-surface: #191c1a;
+  --color-on-surface-variant: #3f4947;
+  --color-inverse-surface: #2e312e;
+  --color-inverse-on-surface: #eff1ec;
+  --color-outline: #707977;
+  --color-outline-variant: #bfc9c6;
+  --color-surface-tint: #2b6860;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #004b44;
+  --color-on-primary-container: #7ebab0;
+  --color-inverse-primary: #95d2c8;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #aeedd5;
+  --color-on-secondary-container: #316d5b;
+  --color-tertiary: #636037;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #b2ad7d;
+  --color-on-tertiary-container: #43411b;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
 
-:root {
-  --color-primary: 0 50 45;
-  /* Forest Green (#00322d) */
-  --color-secondary: 44 105 86;
-  /* Mint Green (#2c6956) */
-  --color-surface: 248 250 245;
-  /* Off-white (#f8faf5) */
-  --color-background: 248 250 245;
-  /* Off-white (#f8faf5) */
-  --color-border: 0 50 45;
-  /* Forest Green outline */
-  --color-success: 44 105 86;
-  --color-warning: 99 96 55;
-  /* Soft Yellow-Green (#636037) */
-  --color-error: 186 26 26;
-  /* Deep Red (#ba1a1a) */
-  --color-text: 25 28 26;
-  /* Deep Charcoal (#191c1a) */
-  --color-text-muted: 63 73 71;
-  /* Charcoal variant (#3f4947) */
+  --font-anton: 'Anton', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-space: '"Space Mono"', monospace;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: '"Space Mono"', ui-monospace, SFMono-Regular, monospace;
+
+  --text-page: 2.25rem;
+  --text-page--line-height: 1.1;
+  --text-page--letter-spacing: 0.02em;
+
+  --text-section: 1.25rem;
+  --text-section--line-height: 1.3;
+  --text-section--letter-spacing: 0.04em;
+
+  --text-kpi: 3.5rem;
+  --text-kpi--line-height: 1.0;
+  --text-kpi--letter-spacing: -0.01em;
+
+  --text-display: 4.5rem;
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.02em;
+
+  --shadow-brutal: 4px 4px 0px 0px #00322d;
+  --shadow-brutal-lg: 6px 6px 0px 0px #00322d;
+  --shadow-brutal-sm: 2px 2px 0px 0px #00322d;
+  --shadow-brutal-xs: 1px 1px 0px 0px #00322d;
+  --shadow-subtle: 4px 4px 0px 0px #00322d;
+  --shadow-medium: 6px 6px 0px 0px #00322d;
+  --shadow-focus: 0 0 0 3px rgba(44, 105, 86, 0.3);
+  --shadow-header: 0 1px 0 0 rgba(0, 50, 45, 0.08);
+
+  --radius-none: 0px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-card: 12px;
+  --radius-pill: 9999px;
+  --radius-default: 8px;
+
+  --animate-fast: 100ms;
+  --animate-normal: 150ms;
 }
+
+
 
 * {
   box-sizing: border-box;
@@ -33,8 +92,8 @@
 
 html {
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  background-color: rgb(var(--color-background));
-  color: rgb(var(--color-text));
+  background-color: var(--color-background);
+  color: var(--color-text);
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -47,8 +106,8 @@ body {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  color: rgb(var(--color-text));
-  background-color: rgb(var(--color-background));
+  color: var(--color-text);
+  background-color: var(--color-background);
   line-height: 1.6;
 }
 
@@ -351,7 +410,7 @@ body {
   bottom: 0;
   width: 10px;
   height: 50%;
-  background: rgb(var(--color-primary));
+  background: var(--color-primary);
   transform-origin: center bottom;
   box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
 }
@@ -397,7 +456,7 @@ body {
   left: 0;
   width: 10px;
   height: 10px;
-  background: rgb(var(--color-secondary));
+  background: var(--color-secondary);
   border-radius: 50%;
   -webkit-animation: ball624 4s infinite;
   animation: ball624 4s infinite;
